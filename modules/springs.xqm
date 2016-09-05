@@ -98,7 +98,6 @@ function springs:magazines-as-csv() {
 
 (: TODO support output as TEI, RDF :)
 
-
 declare
   %rest:GET
   %rest:path("/springs/magazines/{$bmtnid}")
@@ -222,10 +221,40 @@ function springs:issue-as-rdf($bmtnid) {
 };
 
 (:::::::::::::::::::: CONSTITUENTS ::::::::::::::::::::)
+declare function springs:constituents($bmtnid) {
+    let $constituents :=
+        if (springs:_issuep($bmtnid))
+            then springs:_issue($bmtnid)//tei:relatedItem[@type='constituent']
+        else
+            for $issue in springs:_magazine-issues($bmtnid)
+            return $issue//tei:relatedItem[@type='constituent']
+    return
+        $constituents
+};
+
 declare
-  %rest:GET
-  %rest:path("/springs/constituents/{$bmtnid}")
-function springs:constituents($bmtnid) {
+ %rest:GET
+ %rest:path("/springs/constituents/{$bmtnid}")
+ %output:method("text")
+ %rest:produces("text/csv")
+function springs:constituents-as-csv($bmtnid) {
+    let $header := "issueid,issueTitle,constituentID,constituentTitle"
+    let $rows :=
+        for $constituent in springs:constituents($bmtnid)
+            let $issue := $constituent/ancestor::tei:TEI
+            let $issueid := xs:string($issue//tei:idno[@type='bmtnid'])
+            let $issueTitle := xs:string($issue//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:title/tei:seg[@type='main'])
+            let $constituentid := xs:string($constituent/@xml:id)
+            let $constituentTitle := springs:_clean-string(xs:string($constituent/tei:biblStruct/tei:analytic/tei:title[@level = 'a']/tei:seg[@type='main'][1]))
+        return
+            string-join(($issueid,$issueTitle,$constituentid,$constituentTitle), ',')
+    return
+        string-join(($header,$rows), codepoints-to-string(10))
+};
+  
+
+(: deprecate :)
+declare function springs:constituents-mods($bmtnid) {
     let $issue := collection($config:metadata)//mods:mods[mods:identifier[@type='bmtn'] = 'urn:PUL:bluemountain:' || $bmtnid]
     let $constituents := $issue/mods:relatedItem[@type = 'constituent']
     return
@@ -462,6 +491,11 @@ as element()
 declare function springs:_magazine($bmtnid as xs:string)
 {
     collection($config:transcriptions)//tei:TEI[./tei:teiHeader//tei:publicationStmt/tei:idno[@type='bmtnid'] = $bmtnid]
+};
+
+declare function springs:_magazine-issues($bmtnid as xs:string)
+{
+    collection($config:transcriptions)//tei:TEI[.//tei:relatedItem[@type='host']/@target = $bmtnid]
 };
 
 declare function springs:_magazine-mods($bmtnid as xs:string)
