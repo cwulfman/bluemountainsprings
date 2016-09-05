@@ -251,7 +251,31 @@ function springs:constituents-as-csv($bmtnid) {
     return
         string-join(($header,$rows), codepoints-to-string(10))
 };
-  
+
+declare
+ %rest:GET
+ %rest:path("/springs/constituents/{$bmtnid}")
+ %output:method("json")
+ %rest:produces("application/json")
+function springs:constituents-as-json($bmtnid) {
+    <constituents> {
+        for $constituent in springs:constituents($bmtnid)
+            let $issue := $constituent/ancestor::tei:TEI
+            let $issueid := xs:string($issue//tei:idno[@type='bmtnid'])
+            let $issueTitle := xs:string($issue//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:title/tei:seg[@type='main'])
+            let $constituentid := xs:string($constituent/@xml:id)
+            let $constituentTitle := springs:_clean-string(xs:string($constituent/tei:biblStruct/tei:analytic/tei:title[@level = 'a']/tei:seg[@type='main'][1]))
+        return
+            <constituent>
+                <issueid>{$issueid}</issueid>
+                <issueTitle>{$issueTitle}</issueTitle>
+                <constituentID>{$constituentid}</constituentID>
+                <constituentTitle>{$constituentTitle}</constituentTitle>
+            </constituent>
+    }
+    </constituents>
+};
+   
 
 (: deprecate :)
 declare function springs:constituents-mods($bmtnid) {
