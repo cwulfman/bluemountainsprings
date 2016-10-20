@@ -103,6 +103,7 @@ declare
  %rest:produces("application/json")
  function iiif:mets-to-manifest-json($issueid) {
     let $manifest-xml := iiif:_mets-to-manifest-xml($issueid)
+    
     let $xsl := doc($config:app-root || "/resources/xsl/xml2json.xsl")
     return 
     (
