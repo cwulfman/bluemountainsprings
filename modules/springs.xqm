@@ -208,45 +208,7 @@ function springs:magazine-tei($bmtnid) {
 };  
   
   
-  
-  (: deprecated :)
-declare function springs:magazine-mods($bmtnid) {
-    let $titlerec := springs:_magazine($bmtnid)
-    let $title := xs:string($titlerec/mods:titleInfo[1]/mods:title[1])
-    let $issues   := collection($config:metadata)//mods:mods[mods:relatedItem[@type='host']/@xlink:href = 'urn:PUL:bluemountain:' || $bmtnid]
-    let $sorted-issues :=
-        for $i in $issues
-        order by $i/mods:originInfo/mods:dateIssued[@keyDate='yes']
-        return $i
-    let $startDate := xs:string($sorted-issues[1]/mods:originInfo/mods:dateIssued[@keyDate='yes'])
-    let $endDate   := xs:string($sorted-issues[last()]/mods:originInfo/mods:dateIssued[@keyDate='yes'])
-    return
-   <magazine>
-    <bmtnid>{ $bmtnid }</bmtnid>
-    <primaryTitle>{ $title }</primaryTitle>
-    <startDate>{ $startDate }</startDate>
-    <endDate>{ $endDate }</endDate>
-    {
-        for $language in $titlerec/mods:language
-        return
-            <language>{ xs:string($language/mods:languageTerm) }</language>
-    },
-    {
-        for $issue in $issues
-        let $id   := $issue//mods:identifier[@type='bmtn']/text() 
-        let $date := $issue/mods:originInfo/mods:dateIssued[@keyDate='yes']/text()
-        return
-          <issues>
-            <id>{ $id }</id>
-            <date>{ $date }</date>
-            <url>
-              { $config:springs-root || '/issues/' || substring-after($id, 'urn:PUL:bluemountain:') }
-            </url>
-          </issues>
-     }
-  </magazine>
-};
-
+ 
 
 (:::::::::::::::::::: ISSUES ::::::::::::::::::::)
 
@@ -255,7 +217,26 @@ declare
   %rest:path("/springs/issues/{$bmtnid}")
   %rest:produces("application/tei+xml")
 function springs:issue-as-tei($bmtnid) {
-    springs:_issue($bmtnid)
+    if (springs:_issuep($bmtnid)) then
+        springs:_issue($bmtnid)
+    else
+    <teiCorpus xmlns="http://www.tei-c.org/ns/1.0">
+     <teiHeader>
+         <fileDesc>
+             <titleStmt>
+                 <title>{ springs:_magazine-title(springs:_magazine($bmtnid)) }</title>
+
+             </titleStmt>
+	        <publicationStmt>
+	           <p>Publication Information</p>
+	        </publicationStmt>
+	        <sourceDesc>
+	           <p>Information about the source</p>
+	        </sourceDesc>
+         </fileDesc>
+     </teiHeader>
+     { springs:_issues-of-magazine($bmtnid) }
+     </teiCorpus>
 };
 
 declare
