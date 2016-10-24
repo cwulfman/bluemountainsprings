@@ -9,7 +9,7 @@
             <xd:p/>
         </xd:desc>
     </xd:doc>
-    <xsl:output indent="yes"/>
+    <xsl:output indent="no"/>
     <xsl:param name="springs-root"/>
     <xsl:template match="/">
         <xsl:variable name="bmtnid">

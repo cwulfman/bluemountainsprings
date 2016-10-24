@@ -17,10 +17,16 @@ declare namespace tei="http://www.tei-c.org/ns/1.0";
 
 (: Utility functions :)
 
+declare function springs:_bmtn-object($bmtnid)
+as element()
+{
+    collection($config:transcriptions)//tei:idno[@type='bmtnid' and . = $bmtnid]/ancestor::tei:TEI
+};
+
 declare function springs:_typeof($bmtnid)
 as xs:string
 {
-    let $object := collection($config:transcriptions)//tei:TEI[./tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type='bmtnid'] = $bmtnid]
+    let $object := springs:_bmtn-object($bmtnid)
     return xs:string($object//tei:teiHeader//tei:profileDesc/tei:textClass/tei:classCode)
 };
 
@@ -46,7 +52,18 @@ as element()
 declare function springs:_magazine-title($magazine as element())
 as xs:string?
 {
-    let $title := springs:_magazine-monogr($magazine)/tei:title[@level='j']
+    springs:_object-title($magazine)
+};
+
+
+declare function springs:_issue-label($issue as element())
+{
+    springs:_object-title($issue)
+};
+
+declare function springs:_object-title($object as element())
+{
+    let $title := springs:_magazine-monogr($object)/tei:title[@level='j']
     let $nonSort := $title/tei:seg[@type='nonSort']
     let $main := $title/tei:seg[@type='main']
     let $sub  := $title/tei:seg[@type='sub']
@@ -68,10 +85,11 @@ as xs:string
     return if ($date/@to) then $date/@to else $date/@when
 };
 
+(: TODO refactor :)
 declare function springs:_issue($issueid as xs:string)
 as element()
 {
-    collection($config:transcriptions)//tei:TEI[./tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type='bmtnid'] = $issueid]
+    springs:_bmtn-object($issueid)
 };
 
 declare function springs:_issues-of-magazine($magid as xs:string)
@@ -109,11 +127,6 @@ declare function springs:_magazines-tei() {
     collection($config:transcriptions)//tei:TEI[./tei:teiHeader/tei:profileDesc/tei:textClass/tei:classCode = 300215389 ]
 };
 
-
-declare function springs:_issue-label($issue as element())
-{
-    xs:string($issue/mods:titleInfo[1]/mods:title[1])
-};
 
 declare function springs:_bylines-from-issue($issueid as xs:string)
 as element()+
