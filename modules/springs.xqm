@@ -31,6 +31,12 @@ as xs:boolean
     return if ($classCode = "300312349") then true() else false() 
 };
 
+declare function springs:_bmtnid-of($bmtnobject)
+as xs:string
+{
+    $bmtnobject//tei:TEI//tei:teiHeader//tei:publicationStmt/tei:idno[@type='bmtnid']
+};
+
 declare function springs:_magazine-monogr($magazine as element())
 as element()
 {
@@ -66,6 +72,18 @@ declare function springs:_issue($issueid as xs:string)
 as element()
 {
     collection($config:transcriptions)//tei:TEI[./tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type='bmtnid'] = $issueid]
+};
+
+declare function springs:_issues-of-magazine($magid as xs:string)
+as element()*
+{
+    collection($config:transcriptions)//tei:relatedItem[@type='host' and @target = $magid]/ancestor::tei:TEI
+};
+
+declare function springs:_issue-date($issueobj)
+{
+    let $date := springs:_magazine-monogr($issueobj)/tei:imprint/tei:date
+    return if ($date/@from) then $date/@from else $date/@when    
 };
 
 declare function springs:_issue-mods($bmtnid as xs:string)
@@ -165,7 +183,34 @@ declare
   %rest:path("/springs/magazines/{$bmtnid}")
   %output:method("json")
   %rest:produces("application/json")
-function springs:magazine($bmtnid) {
+function springs:magazine-tei($bmtnid) {
+    let $magazine := springs:_magazine($bmtnid) 
+    return
+        <magazine>
+            <bmtnid>{ $bmtnid }</bmtnid>
+            <primaryTitle>{ springs:_magazine-title($magazine) }</primaryTitle>
+            <startDate>{ springs:_magazine-date-start($magazine) }</startDate>
+            <endDate>{ springs:_magazine-date-end($magazine) }</endDate>
+            {
+              for $issue in springs:_issues-of-magazine($bmtnid)
+              let $id   := springs:_bmtnid-of($issue)
+              let $date := springs:_issue-date($issue)
+              return
+                   <issues>
+                       <id>{ $id }</id>
+                       <date>{ $date }</date>
+                       <url>
+                         { $config:springs-root || '/issues/' || $id }
+                       </url>
+                   </issues>
+           }
+        </magazine>
+};  
+  
+  
+  
+  (: deprecated :)
+declare function springs:magazine-mods($bmtnid) {
     let $titlerec := springs:_magazine($bmtnid)
     let $title := xs:string($titlerec/mods:titleInfo[1]/mods:title[1])
     let $issues   := collection($config:metadata)//mods:mods[mods:relatedItem[@type='host']/@xlink:href = 'urn:PUL:bluemountain:' || $bmtnid]
@@ -186,24 +231,20 @@ function springs:magazine($bmtnid) {
         return
             <language>{ xs:string($language/mods:languageTerm) }</language>
     },
-    
-
-
-                {
-                    for $issue in $issues
-                    let $id   := $issue//mods:identifier[@type='bmtn']/text() 
-                    let $date := $issue/mods:originInfo/mods:dateIssued[@keyDate='yes']/text()
-                    return
-                        <issues>
-                            <id>{ $id }</id>
-                            <date>{ $date }</date>
-                            <url>
-                              { $config:springs-root || '/issues/' || substring-after($id, 'urn:PUL:bluemountain:') }
-                            </url>
-                        </issues>
-                }
-
-              </magazine>
+    {
+        for $issue in $issues
+        let $id   := $issue//mods:identifier[@type='bmtn']/text() 
+        let $date := $issue/mods:originInfo/mods:dateIssued[@keyDate='yes']/text()
+        return
+          <issues>
+            <id>{ $id }</id>
+            <date>{ $date }</date>
+            <url>
+              { $config:springs-root || '/issues/' || substring-after($id, 'urn:PUL:bluemountain:') }
+            </url>
+          </issues>
+     }
+  </magazine>
 };
 
 
