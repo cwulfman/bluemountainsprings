@@ -10,13 +10,11 @@
         </xd:desc>
     </xd:doc>
     <xsl:variable name="newline" select="'&#xD;&#xA;'"/>
-    <xsl:template match="foo">
+    <xsl:template match="/">
         <xsl:apply-templates select="tei:TEI/tei:text/tei:body"/>
     </xsl:template>
-    <xsl:template match="/">
-        <xsl:apply-templates/>
-    </xsl:template>
-    <xsl:template match="tei:teiHeader"><!-- No op --></xsl:template>
+    <xsl:template match="tei:teiHeader"><!-- no op --></xsl:template>
+    <xsl:template match="tei:facsimile"><!-- no op --></xsl:template>
     <xsl:template match="tei:div">
         <xsl:apply-templates/>
     </xsl:template>

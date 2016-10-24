@@ -187,21 +187,17 @@ function springs:magazine-tei($bmtnid) {
     let $magazine := springs:_magazine($bmtnid) 
     return
         <magazine>
-            <bmtnid>{ $bmtnid }</bmtnid>
+            <bmtnid>      { $bmtnid }</bmtnid>
             <primaryTitle>{ springs:_magazine-title($magazine) }</primaryTitle>
-            <startDate>{ springs:_magazine-date-start($magazine) }</startDate>
-            <endDate>{ springs:_magazine-date-end($magazine) }</endDate>
+            <startDate>   { springs:_magazine-date-start($magazine) }</startDate>
+            <endDate>     { springs:_magazine-date-end($magazine) }</endDate>
             {
               for $issue in springs:_issues-of-magazine($bmtnid)
-              let $id   := springs:_bmtnid-of($issue)
-              let $date := springs:_issue-date($issue)
               return
                    <issues>
-                       <id>{ $id }</id>
-                       <date>{ $date }</date>
-                       <url>
-                         { $config:springs-root || '/issues/' || $id }
-                       </url>
+                       <id>  { springs:_bmtnid-of($issue) }</id>
+                       <date>{ springs:_issue-date($issue) }</date>
+                       <url> { $config:springs-root || '/issues/' || springs:_bmtnid-of($issue) }</url>
                    </issues>
            }
         </magazine>
@@ -225,7 +221,6 @@ function springs:issue-as-tei($bmtnid) {
          <fileDesc>
              <titleStmt>
                  <title>{ springs:_magazine-title(springs:_magazine($bmtnid)) }</title>
-
              </titleStmt>
 	        <publicationStmt>
 	           <p>Publication Information</p>
@@ -247,6 +242,12 @@ declare
 function springs:issue-as-plaintext($bmtnid) {
     let $issue := springs:_issue($bmtnid)
     let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
+    let $responseBody :=
+        if (springs:_issuep($bmtnid)) then
+            transform:transform( springs:_issue($bmtnid), $xsl, () )
+        else
+            for $issue in springs:_issues-of-magazine($bmtnid)
+            return transform:transform($issue, $xsl, ())
     return 
     (
         <rest:response>
@@ -255,8 +256,7 @@ function springs:issue-as-plaintext($bmtnid) {
                 <http:header name="Access-Control-Allow-Origin" value="*"/>
             </http:response>
         </rest:response>,
-
-    transform:transform($issue, $xsl, ())
+        $responseBody 
     )
 };
 
@@ -266,12 +266,19 @@ declare
   %output:method("json")
   %rest:produces("application/json")
 function springs:issue-as-json($bmtnid) {
-    let $issue := springs:_issue($bmtnid)
     let $xsl := doc($config:app-root || "/resources/xsl/tei2data.xsl")
     let $xslt-parameters := 
       <parameters>
           <param name="springs-root" value="{$config:springs-root}"/>
-      </parameters>    
+      </parameters>
+    let $responseBody :=
+        if (springs:_issuep($bmtnid)) then
+            transform:transform( springs:_issue($bmtnid), $xsl, $xslt-parameters )
+        else
+            let $issueSet :=
+                for $issue in springs:_issues-of-magazine($bmtnid)
+                return if ($issue) then transform:transform( $issue, $xsl, $xslt-parameters ) else ()
+            return <issues>{ $issueSet }</issues>
     return 
     (
         <rest:response>
@@ -280,8 +287,7 @@ function springs:issue-as-json($bmtnid) {
                 <http:header name="Access-Control-Allow-Origin" value="*"/>
             </http:response>
         </rest:response>,
-
-    transform:transform($issue, $xsl, $xslt-parameters)
+        $responseBody
     )
 };
 

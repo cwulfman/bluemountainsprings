@@ -50,7 +50,15 @@
             </xsl:for-each>
         </contributors>
         <xsl:for-each-group select="ancestor::tei:biblStruct/tei:relatedItem[@type='constituent']" group-by="tei:biblStruct//tei:classCode[@scheme = 'CCS']">
-            <xsl:element name="{current-grouping-key()}">
+            <xsl:variable name="groupName">
+                <xsl:choose>
+                    <xsl:when test="current-grouping-key()">
+                        <xsl:value-of select="current-grouping-key()"/>
+                    </xsl:when>
+                    <xsl:otherwise>Unspecified</xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            <xsl:element name="{ $groupName }">
                 <xsl:for-each select="current-group()">
                     <contribution>
                         <id>
