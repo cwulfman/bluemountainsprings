@@ -15,7 +15,6 @@ import module namespace rest = "http://exquery.org/ns/restxq" ;
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace http = "http://expath.org/ns/http-client"; 
 
-declare namespace mods="http://www.loc.gov/mods/v3";
 declare namespace xlink="http://www.w3.org/1999/xlink";
 declare namespace tei="http://www.tei-c.org/ns/1.0";
 
@@ -155,31 +154,8 @@ declare function springs:_issue-date($issueobj)
     return if ($date/@from) then $date/@from else $date/@when    
 };
 
-declare function springs:_issue-mods($bmtnid as xs:string)
-as element()
-{
-    let $issue := collection($config:metadata)//mods:mods[mods:identifier[@type='bmtn'] = 'urn:PUL:bluemountain:' || $bmtnid]
-    return $issue    
-};
-
-declare function springs:_magazine-mods($bmtnid as xs:string)
-{
-    let $identifier := concat('urn:PUL:bluemountain:', $bmtnid)
-    let $titlerec := collection($config:metadata)//mods:identifier[@type='bmtn' and . = $identifier]/ancestor::mods:mods
-    return $titlerec
-};
-
 declare function springs:_magazines() {
     collection($config:transcriptions)//tei:TEI[./tei:teiHeader/tei:profileDesc/tei:textClass/tei:classCode = 300215389 ]
-};
-
-
-declare function springs:_bylines-from-issue($issueid as xs:string)
-as element()+
-{
-    let $issue := springs:_issue-mods($issueid)
-    let $creators := $issue//mods:roleTerm[. = 'cre']
-    return $creators/ancestor::mods:name/mods:displayForm
 };
 
 declare function springs:_bylines-from-issue-tei($issue as element())
@@ -262,7 +238,7 @@ declare
   %rest:produces("application/tei+xml")
 function springs:issue-as-tei($bmtnid) {
     if (springs:_issuep($bmtnid)) then
-        springs:_issue($bmtnid)
+        springs:_bmtn-object($bmtnid)
     else
     <teiCorpus xmlns="http://www.tei-c.org/ns/1.0">
      <teiHeader>
@@ -288,11 +264,10 @@ declare
   %output:method("text")
   %rest:produces("text/plain")
 function springs:issue-as-plaintext($bmtnid) {
-    let $issue := springs:_issue($bmtnid)
     let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
     let $responseBody :=
         if (springs:_issuep($bmtnid)) then
-            transform:transform( springs:_issue($bmtnid), $xsl, () )
+            transform:transform( springs:_bmtn-object($bmtnid), $xsl, () )
         else
             for $issue in springs:_issues-of-magazine($bmtnid)
             return transform:transform($issue, $xsl, ())
@@ -321,7 +296,7 @@ function springs:issue-as-json($bmtnid) {
       </parameters>
     let $responseBody :=
         if (springs:_issuep($bmtnid)) then
-            transform:transform( springs:_issue($bmtnid), $xsl, $xslt-parameters )
+            transform:transform( springs:_bmtn-object($bmtnid), $xsl, $xslt-parameters )
         else
             let $issueSet :=
                 for $issue in springs:_issues-of-magazine($bmtnid)
@@ -344,8 +319,8 @@ declare
   %rest:path("/springs/issues/{$bmtnid}")
   %rest:produces("application/rdf+xml")
 function springs:issue-as-rdf($bmtnid) {
-    let $issue := springs:_issue-mods($bmtnid)
-    let $xsl := doc($config:app-root || "/resources/xsl/mods2crm.xsl")
+    let $issue := springs:_issue($bmtnid)
+    let $xsl := doc($config:app-root || "/resources/xsl/tei2crm.xsl")
 
     return transform:transform($issue, $xsl, ())
 };
@@ -429,8 +404,7 @@ declare
  %rest:path("/springs/text/{$issueid}")
 function springs:text($issueid) {
     let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
-    let $issue := springs:_issue($issueid)
-    return transform:transform($issue, $xsl, ())
+    return transform:transform(springs:_bmtn-object($issueid), $xsl, ())
 };
 
 
