@@ -298,10 +298,7 @@ function springs:issue-as-json($bmtnid) {
         if (springs:_issuep($bmtnid)) then
             transform:transform( springs:_bmtn-object($bmtnid), $xsl, $xslt-parameters )
         else
-            let $issueSet :=
-                for $issue in springs:_issues-of-magazine($bmtnid)
-                return if ($issue) then transform:transform( $issue, $xsl, $xslt-parameters ) else ()
-            return <issues>{ $issueSet }</issues>
+            springs:_magazine-struct(springs:_magazine($bmtnid), true())
     return 
     (
         <rest:response>
