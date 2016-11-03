@@ -194,6 +194,47 @@ declare function springs:_magazine-struct($bmtnobj as element(), $include-issues
         </magazine>
 };
 
+(:::: Utilities for Contributors ::::)
+declare function springs:_contributor-data-tei($issue)
+{
+    let $issueid := xs:string($issue//tei:idno[@type='bmtnid'])
+    let $issuelabel := $issue//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:title/tei:seg[@type='main']
+    let $contributions := $issue//tei:relatedItem[@type='constituent']
+    for $contribution in $contributions
+        let $constituentid := xs:string($contribution/@xml:id)
+        let $title := xs:string($contribution/tei:biblStruct/tei:analytic/tei:title[@level = 'a']/tei:seg[@type='main'][1])
+        let $respStmts := $contribution//tei:respStmt
+        for $stmt in $respStmts
+            let $byline := $stmt/tei:persName/text()
+            let $contributorid := if ($stmt/tei:persName/@ref) then xs:string($stmt/tei:persName/@ref) else " "
+            return
+             concat(string-join(($issueid, $issuelabel,$contributorid,$byline,$constituentid,$title), ','), codepoints-to-string(10))
+};
+
+declare function springs:_issue-by-id($bmtnid) {
+    collection($config:transcriptions)//tei:idno[@type='bmtnid' and . = $bmtnid]/ancestor::tei:TEI
+};
+
+declare function springs:contributors-from-issue-csv($bmtnid) {
+    let $issue := springs:_issue-by-id($bmtnid)
+    let $rows := springs:_contributor-data-tei($issue)
+    return
+            (concat(string-join(('bmtnid', 'label', 'contributorid', 'byline', 'constituentid', 'title'),','), codepoints-to-string(10)),
+        $rows)
+};
+
+declare function springs:contributors-from-title-csv($bmtnid) {
+    let $issues := collection($config:transcriptions)//tei:relatedItem[@type='host' and @target = $bmtnid]/ancestor::tei:TEI
+    let $rows := 
+        for $issue in $issues
+         return springs:_contributor-data-tei($issue)
+    return 
+        (concat(string-join(('bmtnid', 'label', 'contributorid', 'byline', 'constituentid', 'title'),','), codepoints-to-string(10)),
+        $rows)
+};
+
+
+
 (:::::::::::::::::::  MAGAZINES ::::::::::::::::)
 
 
@@ -323,28 +364,6 @@ function springs:issue-as-rdf($bmtnid) {
 };
 
 (:::::::::::::::::::: CONSTITUENTS ::::::::::::::::::::)
-declare
-  %rest:GET
-  %rest:path("/springs/constituents/{$bmtnid}")
-function springs:constituents2($bmtnid) {
-    let $constituents := springs:_bmtn-object($bmtnid)//tei:relatedItem[@type='constituent']
-    return
-     <issue>
-       {
-        for $constituent in $constituents
-        return
-        <constituent>
-        <id>{ string-join(($bmtnid,springs:_constituent-id($constituent)), '#') }</id>
-        <uri>{ $config:springs-root || '/constituent/' || $bmtnid || '/' || springs:_constituent-id($constituent) }</uri>
-        <title>{ springs:_constituent-title($constituent) }</title>
-        {
-            for $byline in springs:_constituent-bylines($constituent)
-            return <byline>{ $byline }</byline>
-        }
-        </constituent>
-       }
-     </issue>
-};
 
 declare
   %rest:GET
@@ -378,7 +397,7 @@ as element()*
     collection($config:transcriptions)//tei:relatedItem[ft:query(.//tei:persName, $byline)]
 };
 
- 
+(:::::::::::::::::::: CONSTITUENT ::::::::::::::::::::) 
 declare
   %rest:GET
   %rest:path("/springs/constituent/{$issueid}/{$constid}")
@@ -409,6 +428,8 @@ function springs:constituent-tei($issueid, $constid) {
 
 
 (::::::::::::::::::: TEXT ::::::::::::::::::::)
+(:: I think this service is redundant ::)
+
 declare
     %rest:GET
     %rest:path("/springs/text/{$issueid}/{$constid}")
@@ -431,44 +452,6 @@ function springs:text($issueid) {
 
 
 (::::::::::::::::::: CONTRIBUTORS ::::::::::::::::::::)
-declare function springs:_contributor-data-tei($issue)
-{
-    let $issueid := xs:string($issue//tei:idno[@type='bmtnid'])
-    let $issuelabel := $issue//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:title/tei:seg[@type='main']
-    let $contributions := $issue//tei:relatedItem[@type='constituent']
-    for $contribution in $contributions
-        let $constituentid := xs:string($contribution/@xml:id)
-        let $title := xs:string($contribution/tei:biblStruct/tei:analytic/tei:title[@level = 'a']/tei:seg[@type='main'][1])
-        let $respStmts := $contribution//tei:respStmt
-        for $stmt in $respStmts
-            let $byline := $stmt/tei:persName/text()
-            let $contributorid := if ($stmt/tei:persName/@ref) then xs:string($stmt/tei:persName/@ref) else " "
-            return
-             concat(string-join(($issueid, $issuelabel,$contributorid,$byline,$constituentid,$title), ','), codepoints-to-string(10))
-};
-
-declare function springs:_issue-by-id($bmtnid) {
-    collection($config:transcriptions)//tei:idno[@type='bmtnid' and . = $bmtnid]/ancestor::tei:TEI
-};
-
-declare function springs:contributors-from-issue-csv($bmtnid) {
-    let $issue := springs:_issue-by-id($bmtnid)
-    let $rows := springs:_contributor-data-tei($issue)
-    return
-            (concat(string-join(('bmtnid', 'label', 'contributorid', 'byline', 'constituentid', 'title'),','), codepoints-to-string(10)),
-        $rows)
-};
-
-declare function springs:contributors-from-title-csv($bmtnid) {
-    let $issues := collection($config:transcriptions)//tei:relatedItem[@type='host' and @target = $bmtnid]/ancestor::tei:TEI
-    let $rows := 
-        for $issue in $issues
-         return springs:_contributor-data-tei($issue)
-    return 
-        (concat(string-join(('bmtnid', 'label', 'contributorid', 'byline', 'constituentid', 'title'),','), codepoints-to-string(10)),
-        $rows)
-};
-
 
 declare
  %rest: GET
