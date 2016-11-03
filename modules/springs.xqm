@@ -345,7 +345,32 @@ function springs:constituents2($bmtnid) {
        }
      </issue>
 };
- 
+
+declare
+  %rest:GET
+  %rest:path("/springs/constituents/{$bmtnid}")
+  %output:method("json")
+  %rest:produces("application/json")
+function springs:constituents-as-json($bmtnid) {
+    let $constituents := springs:_bmtn-object($bmtnid)//tei:relatedItem[@type='constituent']
+    return
+     <issue>
+       {
+        for $constituent in $constituents
+        return
+        <constituent>
+        <id>{ string-join(($bmtnid,springs:_constituent-id($constituent)), '#') }</id>
+        <uri>{ $config:springs-root || '/constituent/' || $bmtnid || '/' || springs:_constituent-id($constituent) }</uri>
+        <title>{ springs:_constituent-title($constituent) }</title>
+        {
+            for $byline in springs:_constituent-bylines($constituent)
+            return <byline>{ $byline }</byline>
+        }
+        </constituent>
+       }
+     </issue>
+};
+
 
 declare function springs:constituents-with-byline($byline as xs:string)
 as element()*
