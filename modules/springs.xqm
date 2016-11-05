@@ -202,13 +202,15 @@ declare function springs:_contributor-data-tei($issue)
     let $contributions := $issue//tei:relatedItem[@type='constituent']
     for $contribution in $contributions
         let $constituentid := xs:string($contribution/@xml:id)
-        let $title := xs:string($contribution/tei:biblStruct/tei:analytic/tei:title[@level = 'a']/tei:seg[@type='main'][1])
+        let $title := normalize-space(xs:string($contribution/tei:biblStruct/tei:analytic/tei:title[@level = 'a']/tei:seg[@type='main'][1]))
+        let $qtitle := concat("&quot;", $title,"&quot;")
         let $respStmts := $contribution//tei:respStmt
         for $stmt in $respStmts
-            let $byline := $stmt/tei:persName/text()
+            let $byline := normalize-space($stmt/tei:persName/text())
+            let $byline := concat("&quot;", $byline,"&quot;")
             let $contributorid := if ($stmt/tei:persName/@ref) then xs:string($stmt/tei:persName/@ref) else " "
             return
-             concat(string-join(($issueid, $issuelabel,$contributorid,$byline,$constituentid,$title), ','), codepoints-to-string(10))
+             concat(string-join(($issueid, $issuelabel,$contributorid,$byline,$constituentid,$qtitle), ','), codepoints-to-string(10))
 };
 
 declare function springs:_issue-by-id($bmtnid) {
