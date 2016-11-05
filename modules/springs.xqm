@@ -390,13 +390,6 @@ function springs:constituents-as-json($bmtnid) {
      </issue>
 };
 
-
-declare function springs:constituents-with-byline($byline as xs:string)
-as element()*
-{
-    collection($config:transcriptions)//tei:relatedItem[ft:query(.//tei:persName, $byline)]
-};
-
 (:::::::::::::::::::: CONSTITUENT ::::::::::::::::::::) 
 declare
   %rest:GET
@@ -496,4 +489,88 @@ function springs:contributors-from-issue($issueid) {
             </contributor>
         } </contributors>
     
+};
+
+declare
+ %rest:GET
+ %rest:path("/springs/contributions")
+ %rest:query-param("byline", "{$byline}", "stranger")
+ %output:method("json")
+ %rest:produces("application/json")
+function springs:constituents-with-byline-json($byline)
+as element()*
+{
+    <contributions> {
+    for $constituent in collection($config:transcriptions)//tei:relatedItem[ft:query(.//tei:persName, $byline)]
+    let $title := xs:string($constituent/tei:biblStruct/tei:analytic/tei:title)
+    let $bylines := $constituent/tei:biblStruct/tei:analytic/tei:respStmt/tei:persName
+    let $languages := $constituent/tei:biblStruct/tei:analytic/tei:textLang
+    let $issueid := $constituent/ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type='bmtnid']
+    let $constid := xs:string($constituent/@xml:id)
+    return
+     <contribution>
+        <title>{ $title }</title>
+        { for $b in $bylines return <byline>{ xs:string($b)} </byline> }
+        { for $l in $languages return <language>{ xs:string($l/@mainLang)}</language> }        
+        <issue>{ xs:string($issueid) }</issue>
+        <constituentid>{ $constid }</constituentid>
+        <uri>{ $config:springs-root || '/constituent/' || $issueid || '/' || $constid }</uri>
+     </contribution>
+     } </contributions>
+};
+
+declare
+ %rest:GET
+ %rest:path("/springs/contributions")
+ %rest:query-param("byline", "{$byline}", "stranger")
+ %rest:produces("application/tei+xml")
+function springs:constituents-with-byline-tei($byline)
+as element()*
+{
+    <teiCorpus xmlns="http://www.tei-c.org/ns/1.0">
+     <teiHeader>
+         <fileDesc>
+             <titleStmt>
+                 <title>title of corpus</title>
+                 <author>author</author>
+             </titleStmt>
+	        <publicationStmt>
+	           <p>Publication Information</p>
+	        </publicationStmt>
+	        <sourceDesc>
+	           <p>Information about the source</p>
+	        </sourceDesc>
+         </fileDesc>
+     </teiHeader> {
+    for $constituent in collection($config:transcriptions)//tei:relatedItem[ft:query(.//tei:persName, $byline)]
+    let $title := xs:string($constituent/tei:biblStruct/tei:analytic/tei:title)
+    let $bylines := $constituent/tei:biblStruct/tei:analytic/tei:respStmt/tei:persName
+    let $languages := $constituent/tei:biblStruct/tei:analytic/tei:textLang
+    let $issueid := $constituent/ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type='bmtnid']
+    let $constid := xs:string($constituent/@xml:id)
+    return
+     <TEI xml:id="{$issueid ||'_'||$constid}">
+        <teiHeader>
+            <fileDesc>
+            <titleStmt>
+                <title>{ $title }</title>
+            </titleStmt>
+            <publicationStmt>
+                <p>
+                <ref target="{ $config:springs-root || '/constituent/' || $issueid || '/' || $constid }"/>
+                </p>
+            </publicationStmt>
+            <seriesStmt>
+                <p>Blue Mountain Project</p>
+            </seriesStmt>
+            <sourceDesc>{ $constituent }</sourceDesc>
+            </fileDesc>
+        </teiHeader>
+        <text>
+          <body>
+          { $constituent/ancestor::tei:TEI//tei:div[@corresp=$constid] }
+          </body>
+        </text>
+     </TEI>
+     } </teiCorpus>
 };
