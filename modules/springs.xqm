@@ -360,7 +360,7 @@ declare
   %rest:produces("application/rdf+xml")
 function springs:issue-as-rdf($bmtnid) {
     let $issue := springs:_issue($bmtnid)
-    let $xsl := doc($config:app-root || "/resources/xsl/tei2crm.xsl")
+    let $xsl := doc($config:app-root || "/resources/xsl/bmtn2rdf.xsl")
 
     return transform:transform($issue, $xsl, ())
 };
@@ -565,7 +565,7 @@ as element()*
             <seriesStmt>
                 <p>Blue Mountain Project</p>
             </seriesStmt>
-            <sourceDesc>{ $constituent }</sourceDesc>
+            <sourceDesc>{ $constituent/tei:biblStruct }</sourceDesc>
             </fileDesc>
         </teiHeader>
         <text>
