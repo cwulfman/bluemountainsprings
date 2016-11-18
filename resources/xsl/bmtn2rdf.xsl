@@ -45,11 +45,18 @@ account for all elements in the bmtn MODS record. -->
             </dc:title>
             <dc:type>Collection</dc:type>
             <dc:type>Periodical</dc:type>
-            <xsl:for-each select="tei:biblStruct/tei:monogr/tei:respStmt[tei:resp='edt']">
-                <role:EDT>
-                    <xsl:value-of select="tei:persName"/>
-                </role:EDT>
-            </xsl:for-each>
+            <xsl:choose>
+                <xsl:when test="tei:biblStruct/tei:monogr/tei:respStmt[tei:resp='edt']">
+                    <xsl:for-each select="tei:biblStruct/tei:monogr/tei:respStmt[tei:resp='edt']">
+                        <role:EDT>
+                            <xsl:value-of select="tei:persName"/>
+                        </role:EDT>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <role:EDT>Unknown</role:EDT>
+                </xsl:otherwise>
+            </xsl:choose>
             <collex:discipline>Literature</collex:discipline>
             <collex:genre>Collection</collex:genre>
             <dc:date>
@@ -99,6 +106,7 @@ account for all elements in the bmtn MODS record. -->
                 <xsl:value-of select="$pubDate"/>
             </dc:date>
             <rdfs:seeAlso rdf:resource="{$bmtn-server}/issue.html?issueid={$objid}"/>
+            <collex:fulltext>true</collex:fulltext>
             <collex:text rdf:resource="{$springs-server}/constituent/{$objid}/{@xml:id}"/>
         </bmtn:Description>
     </xsl:template>
