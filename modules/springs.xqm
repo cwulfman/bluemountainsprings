@@ -6,8 +6,8 @@ xquery version "3.0";
  : The first part of the module contains utility functions that access the underlying
  : database and its objects.
  :
- : The second part of the module contains functions conforming with the RESTXQ 1.0 specification
- : for writing RESTful services in XQuery.
+ : The second part of the module contains resource functions conforming with the 
+ : RESTXQ 1.0 specification for writing RESTful services in XQuery.
  :
  : @see http://www.exquery.org/
  : @see http://exquery.github.io/exquery/exquery-restxq-specification/restxq-1.0-specification.html
@@ -44,8 +44,14 @@ declare namespace tei="http://www.tei-c.org/ns/1.0";
 declare variable $springs:issueClass as xs:string := "300312349";
 declare variable $springs:magazineClass as xs:string := "300215389";
 
+(:~
+ : Emitting csv requires terminating each line with a linefeed character.
+ :)
+declare variable $springs:lf as xs:string := codepoints-to-string(10);
 
-(: Utility functions :)
+
+
+(:::::::::::::::::::: UTILITY FUNCTIONS ::::::::::::::::::::)
 
 (:~
  : The Blue Mountain Object identified by an ID.
@@ -105,7 +111,7 @@ as xs:string
 declare function springs:_bmtnid-of($bmtnobject as element())
 as xs:string
 {
-    $bmtnobject//tei:TEI//tei:teiHeader//tei:publicationStmt/tei:idno[@type='bmtnid']
+    $bmtnobject//tei:TEI//tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type='bmtnid']
 };
 
 
@@ -218,6 +224,7 @@ as xs:string
     xs:string($constituent/@xml:id)
 };
 
+
 (:~
  : The display title of an issue constituent.
  :
@@ -272,9 +279,9 @@ as xs:string
  : The start date of a magazine run.
  :
  : Magazine objects encode their run dates as
- : <date @from="yyyy-mm-dd" @to="yyyy-mm-dd"/>;
+ : date @from="yyyy-mm-dd" @to="yyyy-mm-dd";
  : if there was only one issue, the run is
- : encoded as <date @when="yyyy-mm-dd"/>, in which case
+ : encoded as date @when="yyyy-mm-dd", in which case
  : the @when date is used for both the beginning and
  : the end of the run.
  :
@@ -373,7 +380,7 @@ as element()
 };
 
 (:::: Utilities for Contributors ::::)
-declare function springs:_contributor-data-tei($issue as element())
+declare function springs:_contributor-data($issue as element())
 as xs:string*
 {
     let $issueid := xs:string($issue//tei:idno[@type='bmtnid'])
@@ -381,7 +388,7 @@ as xs:string*
     let $contributions := $issue//tei:relatedItem[@type='constituent']
     for $contribution in $contributions
         let $constituentid := xs:string($contribution/@xml:id)
-        let $title := normalize-space(xs:string($contribution/tei:biblStruct/tei:analytic/tei:title[@level = 'a']/tei:seg[@type='main'][1]))
+        let $title := springs:_constituent-title($contribution)
         let $qtitle := concat("&quot;", $title,"&quot;")
         let $respStmts := $contribution//tei:respStmt
         for $stmt in $respStmts
@@ -389,51 +396,106 @@ as xs:string*
             let $byline := concat("&quot;", $byline,"&quot;")
             let $contributorid := if ($stmt/tei:persName/@ref) then xs:string($stmt/tei:persName/@ref) else " "
             return
-             concat(string-join(($issueid, $issuelabel,$contributorid,$byline,$constituentid,$qtitle), ','), codepoints-to-string(10))
+             concat(string-join(($issueid, $issuelabel,$contributorid,$byline,$constituentid,$qtitle), ','), $springs:lf)
 };
 
-declare function springs:_issue-by-id($bmtnid as xs:string)
-as element()
-{
-    collection($config:transcriptions)//tei:idno[@type='bmtnid' and . = $bmtnid]/ancestor::tei:TEI
-};
 
 declare function springs:_contributors-to($bmtnid as xs:string)
 as xs:string*
 {
+    let $header := concat(string-join(('bmtnid', 'label', 'contributorid', 'byline', 'constituentid', 'title'),','), $springs:lf)
     let $records :=
         if (springs:_issuep($bmtnid))
-            then springs:_contributor-data-tei(springs:_issue-by-id($bmtnid))
+            then springs:_contributor-data(springs:_bmtn-object($bmtnid))
         else 
             for $issue in springs:_issues-of-magazine($bmtnid)
-            return springs:_contributor-data-tei($issue)
+            return springs:_contributor-data($issue)
     return
-         (concat(string-join(('bmtnid', 'label', 'contributorid', 'byline', 'constituentid', 'title'),','), codepoints-to-string(10)),
-        $records)
+         ($header,$records)
 };
 
+(:::::::::::::::::::: END OF UTILITY FUNCTIONS ::::::::::::::::::::)
 
-(:::::::::::::::::::  TOP LEVEL ::::::::::::::::)
+
+
+
+(:::::::::::::::::::: RESOURCE FUNCTIONS ::::::::::::::::::::)
+
+(:~
+ : Resource Functions
+ : 
+ : The Blue Mountain Springs API is implemented as a suite of
+ : XQuery Resource Functions as defined by the RESTXQ specification.
+ : That specification uses XQuery 3.0 annotations to associate
+ : xquery functions with HTTP interactions.
+ :
+ : When enabled in eXist-db, RESTXQ establishes a registry of 
+ : resource functions in the database and routes HTTP requests to
+ : the matching functions. RESTXQ enables content negotiation by
+ : supporting annotations that specify what content type a function
+ : produces. Different functions can be written to handle different
+ : content specifications.
+ : 
+ : @see http://exquery.github.io/exquery/exquery-restxq-specification/restxq-1.0-specification.html
+ :)
+
+
+(:~
+ : /springs/api
+ :
+ : The top level of the service; it returns an XML
+ : document detailing the API.
+ :
+ : @see http://exquery.github.io/exquery/exquery-restxq-specification/restxq-1.0-specification.html#rest-resource-functions
+ :)
 declare
  %rest:GET
  %rest:path("/springs/api")
-function springs:top() {
+function springs:top()
+{
     exrest:find-resource-functions(xs:anyURI('/db/apps/bmtnsprings/modules/springs.xqm'))
 };
 
 
-(:::::::::::::::::::  MAGAZINES ::::::::::::::::)
+
 
 (:~
- : @return a result sequence (<rest:response/>, <magazines/>)
+ : The magazines/ service.
+ :
+ : Blue Mountain contains magazines. The magazines/
+ : service returns representations of those magazines.
+ :
+ : If no resource is specified, the service returns a
+ : representation of all the magazines in Blue Mountain.
+ :
+ : If a resource is specified (as a bmtnid), the service
+ : returns a representation of the corresponding magazine.
+ :
+ : Blue Mountain Springs supports cross-origin resource sharing
+ : (CORS) by specifying Access-Control-Allow-Origin: * in the
+ : response header.
+ :
+ : The HTTP response header is only basic in Springs 1.0.
+ :)
+
+(:~
+ : magazines/ as JSON
+ :
+ : Queries the database for magazines and generates
+ : a magazine-struct for each. It uses eXist's built-in
+ : JSON serializer to convert the magazine-struct XML
+ : into JSON.
  : 
+ : @return a result sequence (<rest:response/>, <magazines/>)
  :)
 declare
  %rest:GET
  %rest:path("/springs/magazines")
  %output:method("json")
  %rest:produces("application/json")
-function springs:magazines-as-json() as item()+ {
+function springs:magazines-as-json() 
+as item()+ 
+{
     let $response :=
       <magazines> {
         for $mag in springs:_magazines()
@@ -446,16 +508,28 @@ function springs:magazines-as-json() as item()+ {
               <http:header name="Access-Control-Allow-Origin" value="*"/>
             </http:response>
           </rest:response>,
-        $response)
+         $response)
 };
 
 
+(:~
+ : magazines/ as text/CSV
+ :
+ : Queries the database for magazines and generates
+ : a magazine-struct for each. It assembles a return
+ : value by converting each magazine-struct into a
+ : comma-separated string.
+ :
+ : @return a result sequence (<rest:response/>, text)
+ :)
 declare
  %rest:GET
  %rest:path("/springs/magazines")
  %output:method("text")
  %rest:produces("text/csv")
-function springs:magazines-as-csv() as item()+ {
+function springs:magazines-as-csv()
+as item()+
+{
     let $response :=
       for $mag in springs:_magazines()
       let $struct := springs:_magazine-struct($mag, false())
@@ -464,65 +538,157 @@ function springs:magazines-as-csv() as item()+ {
                                  $struct/primaryLanguage,
                                  $struct/startDate,
                                  $struct/endDate,
-                                 $struct/uri), ','), codepoints-to-string(10))
-     
+                                 $struct/uri), ','), $springs:lf)
     return
-        (
-        <rest:response>
-            <http:response>
-                <http:header name="Content-Type" value="text/csv"/>
-                <http:header name="Access-Control-Allow-Origin" value="*"/>
-            </http:response>
-        </rest:response>,
-        $response
-        )
+        (<rest:response>
+           <http:response>
+             <http:header name="Content-Type" value="text/csv"/>
+             <http:header name="Access-Control-Allow-Origin" value="*"/>
+           </http:response>
+         </rest:response>,
+         $response)
 };
 
+
+(:~
+ : magazines/$bmtnid
+ :
+ : When the Blue Mountain ID of a magzine is supplied
+ : as a resource to the magazines/ service, it returns a
+ : representation of that magazine.
+ :
+ : In Blue Mountain Springs 1.0, the only representation
+ : available is a JSON expression of the magazine-struct.
+ :
+ : @param $bmtnid a Blue Mountain ID of a magazine
+ : @return a sequence (rest:response, json)
+ :)
 declare
   %rest:GET
   %rest:path("/springs/magazines/{$bmtnid}")
   %output:method("json")
   %rest:produces("application/json")
-function springs:magazine-tei($bmtnid as xs:string) {
-    springs:_magazine-struct(springs:_bmtn-object($bmtnid), true())
+function springs:magazine-as-json($bmtnid as xs:string) 
+as item()+
+{
+    let $response := springs:_magazine-struct(springs:_bmtn-object($bmtnid), true())
+    return 
+         (<rest:response>
+            <http:response>
+              <http:header name="Content-Type" value="application/json"/>
+              <http:header name="Access-Control-Allow-Origin" value="*"/>
+            </http:response>
+          </rest:response>,
+         $response)
 };  
   
 
-(:::::::::::::::::::: ISSUES ::::::::::::::::::::)
 
+
+(:~
+ : The issues/ service.
+ :
+ : The issues/ service returns representations of magazine issues.
+ : The service behaves differently depending on the kind of
+ : resource that is requested:
+ : <ol>
+ : <li>if the resource is an issue, the service returns a representation
+ :     of the issue.</li>
+ :<li>if the resource is a magazine, the service returns representations
+ :    of all the issues of that magazine.</li>
+ :</ol>
+ :)
+
+(:~
+ : issues/$bmtnid as TEI
+ :
+ : If the requested resource is an issue,
+ : return the tei:TEI document in the database.
+ :
+ : If the requested resource is a magazine,
+ : return a teiCorpus object containing
+ : the TEI documents for all the magazine's
+ : issues.
+ :
+ : For large magazine runs, this service will 
+ : return a very large data set in Blue Mountain 1.0.
+ : A future version will use status 413 to indicate
+ : an excessively large response and compress the response
+ : before transmission or implement status 207 to coordinate
+ : partial file tranfers.
+ :
+ : @param $bmtnid an id of a magazine or an issue
+ : @return a sequence (rest:response, xml)
+ :)
 declare
   %rest:GET
   %rest:path("/springs/issues/{$bmtnid}")
   %rest:produces("application/tei+xml")
-function springs:issue-as-tei($bmtnid) {
-    if (springs:_issuep($bmtnid)) then
-        springs:_bmtn-object($bmtnid)
-    else
-    <teiCorpus xmlns="http://www.tei-c.org/ns/1.0">
-     <teiHeader>
-         <fileDesc>
-             <titleStmt>
-                 <title>{ springs:_object-title(springs:_bmtn-object($bmtnid)) }</title>
-             </titleStmt>
-	        <publicationStmt>
-	           <p>Publication Information</p>
-	        </publicationStmt>
-	        <sourceDesc>
-	           <p>Information about the source</p>
-	        </sourceDesc>
-         </fileDesc>
-     </teiHeader>
-     { springs:_issues-of-magazine($bmtnid) }
-     </teiCorpus>
+function springs:issue-as-tei($bmtnid as xs:string)
+as item()+
+{
+    let $response :=
+       if (springs:_issuep($bmtnid)) then
+            springs:_bmtn-object($bmtnid)
+        else
+       <teiCorpus xmlns="http://www.tei-c.org/ns/1.0">
+         <teiHeader>
+             <fileDesc>
+                 <titleStmt>
+                     <title>{ springs:_object-title(springs:_bmtn-object($bmtnid)) }</title>
+                </titleStmt>
+	           <publicationStmt>
+	               <p>Publication Information</p>
+	            </publicationStmt>
+	           <sourceDesc>
+	               <p>Information about the source</p>
+	            </sourceDesc>
+           </fileDesc>
+         </teiHeader>
+          { springs:_issues-of-magazine($bmtnid) }
+       </teiCorpus>
+     return
+         (<rest:response>
+            <http:response>
+              <http:header name="Content-Type" value="application/tei+xml"/>
+              <http:header name="Access-Control-Allow-Origin" value="*"/>
+            </http:response>
+          </rest:response>,
+         $response)
 };
 
-(: returns plain-text bag of entire magazine run :)
+
+(:~
+ : issues/$bmtnid as plain text
+ :
+ : If the requested resource is an issue,
+ : the service retrieves the issue tei:TEI 
+ : document from the database and converts it
+ : to plain text using a simple xslt transformation.
+ :
+ : If the requested resource is a magazine,
+ : the service iterates over all the issues in the
+ : magazine and returns a single bag of words representing
+ : the text of the entire run.
+ :
+ : For large magazine runs, this service will 
+ : return a very large data set in Blue Mountain 1.0.
+ : A future version will use status 413 to indicate
+ : an excessively large response and compress the response
+ : before transmission or implement status 207 to coordinate
+ : partial file tranfers.
+ :
+ : @param $bmtnid an id of a magazine or issue
+ : @return a sequence (rest:response, text)
+ :)
 declare
   %rest:GET
   %rest:path("/springs/issues/{$bmtnid}")
   %output:method("text")
   %rest:produces("text/plain")
-function springs:issue-as-plaintext($bmtnid as xs:string) {
+function springs:issue-as-plaintext($bmtnid as xs:string) 
+as item()+
+{
     let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
     let $responseBody :=
         if (springs:_issuep($bmtnid)) then
@@ -530,17 +696,41 @@ function springs:issue-as-plaintext($bmtnid as xs:string) {
         else
             for $issue in springs:_issues-of-magazine($bmtnid)
             return transform:transform($issue, $xsl, ())
-    return 
-    
-             ( <rest:response>
-            <http:response>
-                <http:header name="Content-Type" value="text/plain"/>
-                <http:header name="Access-Control-Allow-Origin" value="*"/>
-            </http:response>
-        </rest:response>,
-        $responseBody )
+    return
+        (<rest:response>
+          <http:response>
+            <http:header name="Content-Type" value="text/plain"/>
+            <http:header name="Access-Control-Allow-Origin" value="*"/>
+          </http:response>
+         </rest:response>,
+         $responseBody)
 };
 
+
+
+(:~
+ : issues/$bmtnid as JSON
+ :
+ : If the requested resource is an issue,
+ : the service retrieves the issue tei:TEI 
+ : document from the database and converts it
+ : to plain text using an xslt transformation.
+ :
+ : If the requested resource is a magazine,
+ : the service iterates over all the issues in the
+ : magazine and returns a single structure representing
+ : the text of the entire run.
+ :
+ : For large magazine runs, this service will 
+ : return a very large data set in Blue Mountain 1.0.
+ : A future version will use status 413 to indicate
+ : an excessively large response and compress the response
+ : before transmission or implement status 207 to coordinate
+ : partial file tranfers.
+ :
+ : @param $bmtnid an id of a magazine or issue
+ : @return a sequence (rest:response, text)
+ :)
 declare
   %rest:GET
   %rest:path("/springs/issues/{$bmtnid}")
@@ -568,6 +758,33 @@ function springs:issue-as-json($bmtnid) {
 
 };
 
+
+(:~
+ : issues/$bmtnid as RDF
+ :
+ : In Blue Mountain version 1.0, this
+ : service is aimed primarily at the
+ : MODNETS aggregator, and it provides
+ : an RDF representation that complies
+ : with its requirements: COLLEX-flavored
+ : RDF.
+ :
+ : @see http://www.modnets.org/
+ : @see http://wiki.collex.org/index.php/Submitting_RDF
+ :
+ : If the requested resource is an issue,
+ : the service retrieves the issue tei:TEI 
+ : document from the database and converts it
+ : to RDF using an xslt transformation.
+ :
+ : If the requested resource is a magazine,
+ : the service iterates over all the issues in the
+ : magazine and returns a single structure representing
+ : the text of the entire run.
+ :
+ : @param $bmtnid an id of a magazine or issue
+ : @return a sequence (rest:response, RDF+XML)
+ :)
 declare
   %rest:GET
   %rest:path("/springs/issues/{$bmtnid}")
@@ -716,10 +933,10 @@ as element()*
 {
     <contributions> {
     for $constituent in collection($config:transcriptions)//tei:relatedItem[ft:query(.//tei:persName, $byline)]
-    let $title := xs:string($constituent/tei:biblStruct/tei:analytic/tei:title)
+    let $title := springs:_constituent-title($constituent)
     let $bylines := $constituent/tei:biblStruct/tei:analytic/tei:respStmt/tei:persName
     let $languages := $constituent/tei:biblStruct/tei:analytic/tei:textLang
-    let $issueid := $constituent/ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type='bmtnid']
+    let $issueid := springs:_bmtnid-of($constituent/ancestor::tei:TEI)
     let $constid := xs:string($constituent/@xml:id)
     return
      <contribution>
