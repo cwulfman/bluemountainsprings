@@ -32,28 +32,28 @@ declare namespace tei="http://www.tei-c.org/ns/1.0";
 : @param $bmtnid the id of the object to be retrieved
 : @return the TEI document for the object
 :)
-declare function springs:_bmtn-object($bmtnid)
+declare function springs:_bmtn-object($bmtnid as xs:string)
 as element()
 {
     collection($config:transcriptions)//tei:idno[@type='bmtnid' and . = $bmtnid]/ancestor::tei:TEI
 };
 
 
-declare function springs:_typeof($bmtnid)
+declare function springs:_typeof($bmtnid as xs:string)
 as xs:string
 {
     let $object := springs:_bmtn-object($bmtnid)
     return xs:string($object//tei:teiHeader//tei:profileDesc/tei:textClass/tei:classCode)
 };
 
-declare function springs:_bmtnid-of($bmtnobject)
+declare function springs:_bmtnid-of($bmtnobject as element())
 as xs:string
 {
     $bmtnobject//tei:TEI//tei:teiHeader//tei:publicationStmt/tei:idno[@type='bmtnid']
 };
 
 
-declare function springs:_issuep($bmtnid)
+declare function springs:_issuep($bmtnid as xs:string)
 as xs:boolean
 {
     let $classCode := springs:_typeof($bmtnid)
@@ -81,11 +81,13 @@ as xs:string?
 
 
 declare function springs:_issue-label($issue as element())
+as xs:string
 {
     springs:_object-title($issue)
 };
 
 declare function springs:_object-title($object as element())
+as xs:string
 {
     let $title := springs:_magazine-monogr($object)/tei:title[@level='j']
     let $nonSort := $title/tei:seg[@type='nonSort']
@@ -95,17 +97,20 @@ declare function springs:_object-title($object as element())
     return if ($sub) then $titleString || ': ' || $sub else $titleString
 };
 
-declare function springs:_constituent($objid, $constid)
+declare function springs:_constituent($objid as xs:string, $constid as xs:string)
+as element()
 {
     springs:_bmtn-object($objid)//tei:div[@corresp = $constid]
 };
 
 declare function springs:_constituent-id($constituent as element())
+as xs:string
 {
     xs:string($constituent/@xml:id)
 };
 
 declare function springs:_constituent-title($constituent as element())
+as xs:string
 {
     let $title := $constituent/tei:biblStruct/tei:analytic/tei:title[@level = 'a']
     let $nonSort := $title/tei:seg[@type='nonSort']
@@ -116,6 +121,7 @@ declare function springs:_constituent-title($constituent as element())
 };
 
 declare function springs:_constituent-bylines($constituent as element())
+as xs:string*
 {
     for $stmt in $constituent//tei:respStmt
     return normalize-space($stmt/tei:persName/text())
@@ -149,12 +155,15 @@ as element()*
 };
 
 declare function springs:_issue-date($issueobj)
+as xs:string
 {
     let $date := springs:_magazine-monogr($issueobj)/tei:imprint/tei:date
     return if ($date/@from) then $date/@from else $date/@when    
 };
 
-declare function springs:_magazines() {
+declare function springs:_magazines()
+as element()
+{
     collection($config:transcriptions)//tei:TEI[./tei:teiHeader/tei:profileDesc/tei:textClass/tei:classCode = 300215389 ]
 };
 
@@ -165,6 +174,7 @@ as element()+
 };
 
 declare function springs:_magazine-struct($bmtnobj as element(), $include-issues as xs:boolean)
+as element()
 {
     let $bmtnid := springs:_bmtnid-of($bmtnobj)
     let $primaryTitle := springs:_magazine-title($bmtnobj)
@@ -195,7 +205,8 @@ declare function springs:_magazine-struct($bmtnobj as element(), $include-issues
 };
 
 (:::: Utilities for Contributors ::::)
-declare function springs:_contributor-data-tei($issue)
+declare function springs:_contributor-data-tei($issue as element())
+as xs:string*
 {
     let $issueid := xs:string($issue//tei:idno[@type='bmtnid'])
     let $issuelabel := $issue//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:title/tei:seg[@type='main']
@@ -213,11 +224,15 @@ declare function springs:_contributor-data-tei($issue)
              concat(string-join(($issueid, $issuelabel,$contributorid,$byline,$constituentid,$qtitle), ','), codepoints-to-string(10))
 };
 
-declare function springs:_issue-by-id($bmtnid) {
+declare function springs:_issue-by-id($bmtnid as xs:string)
+as element()
+{
     collection($config:transcriptions)//tei:idno[@type='bmtnid' and . = $bmtnid]/ancestor::tei:TEI
 };
 
-declare function springs:contributors-from-issue-csv($bmtnid) {
+declare function springs:contributors-from-issue-csv($bmtnid as xs:string) 
+as xs:string*
+{
     let $issue := springs:_issue-by-id($bmtnid)
     let $rows := springs:_contributor-data-tei($issue)
     return
@@ -225,7 +240,9 @@ declare function springs:contributors-from-issue-csv($bmtnid) {
         $rows)
 };
 
-declare function springs:contributors-from-title-csv($bmtnid) {
+declare function springs:contributors-from-title-csv($bmtnid as xs:string) 
+as xs:string*
+{
     let $issues := collection($config:transcriptions)//tei:relatedItem[@type='host' and @target = $bmtnid]/ancestor::tei:TEI
     let $rows := 
         for $issue in $issues
@@ -236,6 +253,13 @@ declare function springs:contributors-from-title-csv($bmtnid) {
 };
 
 
+(:::::::::::::::::::  TOP LEVEL ::::::::::::::::)
+declare
+ %rest:GET
+ %rest:path("/springs/api")
+function springs:top() {
+    exrest:find-resource-functions(xs:anyURI('/db/apps/bmtnsprings/modules/springs.xqm'))
+};
 
 (:::::::::::::::::::  MAGAZINES ::::::::::::::::)
 
@@ -268,7 +292,7 @@ declare
   %rest:path("/springs/magazines/{$bmtnid}")
   %output:method("json")
   %rest:produces("application/json")
-function springs:magazine-tei($bmtnid) {
+function springs:magazine-tei($bmtnid as xs:string) {
     springs:_magazine-struct(springs:_magazine($bmtnid), true())
 };  
   
