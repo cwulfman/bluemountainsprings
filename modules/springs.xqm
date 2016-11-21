@@ -346,7 +346,7 @@ as element()+
  : in different formats by the RESTXQ functions.
  :
  : @param $bmtnobj a tei:TEI element representing a Magazine Object
- : @return a <magazine> element
+ : @return a magazine element
  :)
 declare function springs:_magazine-struct($bmtnobj as element(), $include-issues as xs:boolean)
 as element()
@@ -486,7 +486,7 @@ function springs:top()
  : JSON serializer to convert the magazine-struct XML
  : into JSON.
  : 
- : @return a result sequence (<rest:response/>, <magazines/>)
+ : @return a result sequence (rest:response, magazines)
  :)
 declare
  %rest:GET
@@ -796,8 +796,38 @@ function springs:issue-as-rdf($bmtnid) {
     return transform:transform($issue, $xsl, ())
 };
 
-(:::::::::::::::::::: CONSTITUENTS ::::::::::::::::::::)
 
+
+(:~
+ :  constituents/ service
+ :
+ : The addressable portions of the magazine issues --
+ : articles, illustrations, advertisements -- are the
+ : issue's constituents. They are represented in two ways:
+ :<ol>
+ :<li>descriptive metadata about the constituent is encoded
+ :    in the teiHeader as a relatedItem with an xml id attribute; 
+ :</li>
+ :<li>the full text of the constituent (if it is a textual
+ :    constituent) is encoded in a div element linked to
+ :    the metadata element with a corresp attribute.
+ :</li>
+ :</ol>
+ :
+ : The constituents service returns representations of the metadata
+ : or the full text, depending on the content type requested.
+ :)
+
+
+(:~
+ : constituents/$bmtnid as JSON
+ :
+ : If the specified resource is an issue,
+ : the service retrieves the metadata for the
+ : issue's constituents and extracts data fields.
+ :
+ : TODO extend implementation to accept magazine ids.
+ :)
 declare
   %rest:GET
   %rest:path("/springs/constituents/{$bmtnid}")
