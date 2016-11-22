@@ -346,6 +346,7 @@ as element()+
  : in different formats by the RESTXQ functions.
  :
  : @param $bmtnobj a tei:TEI element representing a Magazine Object
+ : @param $include-issues as boolean flag; if true include a representation of all issues
  : @return a magazine element
  :)
 declare function springs:_magazine-struct($bmtnobj as element(), $include-issues as xs:boolean)
@@ -361,11 +362,7 @@ as element()
         if ($include-issues) then
               for $issue in springs:_issues-of-magazine($bmtnid)
               return
-                   <issue>
-                       <id>  { springs:_bmtnid-of($issue) }</id>
-                       <date>{ springs:_issue-date($issue) }</date>
-                       <url> { $config:springs-root || '/issues/' || springs:_bmtnid-of($issue) }</url>
-                   </issue>
+                springs:_issue-struct($issue, false())
         else ()
     return
         <magazine>
@@ -378,6 +375,45 @@ as element()
             { for $issue in $issues return $issue }
         </magazine>
 };
+
+
+(:~
+ : A common representation of an issue that can be serialized different ways.
+ :
+ : The common data model for an issue used by Blue Mountain Springs. It is serialized
+ : in different formats by the RESTXQ functions.
+ :
+ : @param $bmtnobj a tei:TEI element representing a Magazine Object
+ : @param $include-constituents a boolean if true, include all constituents
+ : @return an issue element
+ :)
+declare function springs:_issue-struct($bmtnobj as element(), $include-constituents as xs:boolean)
+as element()
+{
+    let $bmtnid := springs:_bmtnid-of($bmtnobj)
+    return
+     <issue>
+        <id>  { $bmtnid }</id>
+        <date>{ springs:_issue-date($bmtnobj) }</date>
+        <url> { $config:springs-root || '/issues/' || $bmtnid }</url>
+       {
+         if ($include-constituents) then
+            for $constituent in $bmtnobj//tei:relatedItem[@type='constituent']
+            return
+           <constituent>
+           <id>{ string-join(($bmtnid,springs:_constituent-id($constituent)), '#') }</id>
+           <uri>{ $config:springs-root || '/constituent/' || $bmtnid || '/' || springs:_constituent-id($constituent) }</uri>
+           <title>{ springs:_constituent-title($constituent) }</title>
+           {
+               for $stmt in $constituent//tei:respStmt
+               return <byline>{ normalize-space($stmt/tei:persName/text()) }</byline>
+           }
+        </constituent>
+        else ()
+       }
+     </issue>
+};
+
 
 (:::: Utilities for Contributors ::::)
 declare function springs:_contributor-data($issue as element())
@@ -736,7 +772,9 @@ declare
   %rest:path("/springs/issues/{$bmtnid}")
   %output:method("json")
   %rest:produces("application/json")
-function springs:issue-as-json($bmtnid) {
+function springs:issue-as-json($bmtnid as xs:string) 
+as item()+
+{
     let $xsl := doc($config:app-root || "/resources/xsl/tei2data.xsl")
     let $xslt-parameters := 
       <parameters>
@@ -748,14 +786,13 @@ function springs:issue-as-json($bmtnid) {
         else
             springs:_magazine-struct(springs:_bmtn-object($bmtnid), true())
     return 
-             ( <rest:response>
-            <http:response>
+             (<rest:response>
+               <http:response>
                 <http:header name="Content-Type" value="application/json"/>
                 <http:header name="Access-Control-Allow-Origin" value="*"/>
-            </http:response>
-        </rest:response>,
-        $responseBody )
-
+               </http:response>
+              </rest:response>,
+              $responseBody)
 };
 
 
@@ -789,11 +826,20 @@ declare
   %rest:GET
   %rest:path("/springs/issues/{$bmtnid}")
   %rest:produces("application/rdf+xml")
-function springs:issue-as-rdf($bmtnid) {
+function springs:issue-as-rdf($bmtnid as xs:string)
+as item()+
+{
     let $issue := springs:_bmtn-object($bmtnid)
     let $xsl := doc($config:app-root || "/resources/xsl/bmtn2rdf.xsl")
-
-    return transform:transform($issue, $xsl, ())
+    let $responseBody := transform:transform($issue, $xsl, ())
+    return 
+             (<rest:response>
+               <http:response>
+                <http:header name="Content-Type" value="application/rdf+xml"/>
+                <http:header name="Access-Control-Allow-Origin" value="*"/>
+               </http:response>
+              </rest:response>,
+              $responseBody)  
 };
 
 
@@ -825,61 +871,96 @@ function springs:issue-as-rdf($bmtnid) {
  : If the specified resource is an issue,
  : the service retrieves the metadata for the
  : issue's constituents and extracts data fields.
+ : If the specified resource is a magazine, 
+ : extract constituents from all issues of the run.
  :
- : TODO extend implementation to accept magazine ids.
+ : @param $bmtnid a magazine or issue id
+ : @return a sequence (rest:response, XML)
  :)
 declare
   %rest:GET
   %rest:path("/springs/constituents/{$bmtnid}")
   %output:method("json")
   %rest:produces("application/json")
-function springs:constituents-as-json($bmtnid) {
-    let $constituents := springs:_bmtn-object($bmtnid)//tei:relatedItem[@type='constituent']
+function springs:constituents-as-json($bmtnid as xs:string)
+as item()+
+{
+    let $responseBody :=
+      if (springs:_issuep($bmtnid))
+        then springs:_issue-struct(springs:_bmtn-object($bmtnid), true())
+       else
+         <issues>
+            { for $issue in springs:_issues-of-magazine($bmtnid)
+              return springs:_issue-struct($issue, true())
+            }
+         </issues>
     return
-     <issue>
-       {
-        for $constituent in $constituents
-        return
-        <constituent>
-        <id>{ string-join(($bmtnid,springs:_constituent-id($constituent)), '#') }</id>
-        <uri>{ $config:springs-root || '/constituent/' || $bmtnid || '/' || springs:_constituent-id($constituent) }</uri>
-        <title>{ springs:_constituent-title($constituent) }</title>
-        {
-            for $stmt in $constituent//tei:respStmt
-            return <byline>{ normalize-space($stmt/tei:persName/text()) }</byline>
-        }
-        </constituent>
-       }
-     </issue>
+       (<rest:response>
+          <http:response>
+           <http:header name="Content-Type" value="application/rdf+xml"/>
+           <http:header name="Access-Control-Allow-Origin" value="*"/>
+          </http:response>
+         </rest:response>,
+         $responseBody)  
 };
 
-(:::::::::::::::::::: CONSTITUENT ::::::::::::::::::::) 
+
+(:~
+ : constituent/$issueid/$constid as plain text
+ :
+ : Return a plain-text representation of a constituent of
+ : an issue by retrieving it from the database and transforming
+ : it into plain text with an XSL stylesheet.
+ :
+ : @param $issueid the bmtnid of an issue
+ : @param $constid the id of a constituent
+ : @returns a sequence (rest:response, text)
+ :)
 declare
   %rest:GET
   %rest:path("/springs/constituent/{$issueid}/{$constid}")
-    %rest:produces("text/plain")
-function springs:constituent-plaintext($issueid, $constid) {
+  %rest:produces("text/plain")
+function springs:constituent-plaintext($issueid as xs:string, $constid as xs:string)
+as item()+
+{
+
     let $constituent := springs:_constituent($issueid, $constid)
     let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
+    let $responseBody := transform:transform($constituent, $xsl, ())
     return 
-    (
-        <rest:response>
-            <http:response>
-                <http:header name="Content-Type" value="text/plain"/>
-                <http:header name="Access-Control-Allow-Origin" value="*"/>
-            </http:response>
-        </rest:response>,
-
-    transform:transform($constituent, $xsl, ())
-    )
+    (<rest:response>
+       <http:response>
+          <http:header name="Content-Type" value="text/plain"/>
+          <http:header name="Access-Control-Allow-Origin" value="*"/>
+       </http:response>
+      </rest:response>,
+      $responseBody)
 };
 
+
+(:~
+ : constituent/$issueid/$constid as TEI
+ :
+ : Return the TEI-encoded representation of a constituent of
+ : an issue by retrieving it from the database. Returns a div
+ : element not an entire document.
+ :
+ : @param $issueid the bmtnid of an issue
+ : @param $constid the id of a constituent
+ : @returns a sequence (rest:response, text)
+ :)
 declare
   %rest:GET
   %rest:path("/springs/constituent/{$issueid}/{$constid}")
   %rest:produces("application/tei+xml")
 function springs:constituent-tei($issueid, $constid) {
-    springs:_constituent($issueid, $constid)
+    (<rest:response>
+       <http:response>
+          <http:header name="Content-Type" value="application/tei+xml"/>
+          <http:header name="Access-Control-Allow-Origin" value="*"/>
+       </http:response>
+      </rest:response>,
+      springs:_constituent($issueid, $constid))
 };
 
 
