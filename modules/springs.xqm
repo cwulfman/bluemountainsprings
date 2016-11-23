@@ -372,7 +372,7 @@ as element()
             <startDate>{ $startDate }</startDate>
             <endDate>{ $endDate }</endDate>
             <uri>{ $uri }</uri>
-            { for $issue in $issues return $issue }
+            <issues>{ for $issue in $issues return $issue }</issues>
         </magazine>
 };
 
@@ -421,10 +421,12 @@ as element()
 declare function springs:_constituent-struct($constituent as element(), $issueid as xs:string)
 as element()
 {
-    let $issuelabel := springs:_formatted-title(springs:_bmtn-object($issueid))
+    let $issueObject := springs:_bmtn-object($issueid)
+    let $issuelabel := springs:_formatted-title($issueObject)
     let $constituentid := xs:string($constituent/@xml:id)
     let $title := springs:_constituent-title($constituent)
     let $qtitle := concat("&quot;", $title,"&quot;")
+    let $uri := $config:springs-root || '/constituent/' || $issueid || '/' || $constituentid
     let $contributors := 
         for $stmt in $constituent//tei:respStmt
         let $byline := normalize-space($stmt/tei:persName/text())
@@ -439,6 +441,7 @@ as element()
         <constituent>
             <issueid>{ $issueid }</issueid>
             <constituentid>{ $constituentid }</constituentid>
+            <uri>{ $uri }</uri>
             <title>{ $qtitle }</title>
             { for $c in $contributors return $c }
         </constituent>
