@@ -400,27 +400,59 @@ as element()
          if ($include-constituents) then
             for $constituent in $bmtnobj//tei:relatedItem[@type='constituent']
             return
-           <constituent>
-           <id>{ string-join(($bmtnid,springs:_constituent-id($constituent)), '#') }</id>
-           <uri>{ $config:springs-root || '/constituent/' || $bmtnid || '/' || springs:_constituent-id($constituent) }</uri>
-           <title>{ springs:_constituent-title($constituent) }</title>
-           {
-               for $stmt in $constituent//tei:respStmt
-               return <byline>{ normalize-space($stmt/tei:persName/text()) }</byline>
-           }
-        </constituent>
+                springs:_constituent-struct($constituent, $bmtnid)
         else ()
        }
      </issue>
 };
 
 
+
+(:~
+ : A common representation of a constituent that can be serialized different ways.
+ :
+ : The common data model for a constituent used by Blue Mountain Springs. It is serialized
+ : in different formats by the RESTXQ functions.
+ :
+ : @param $bmtnobj a tei:relatedItem element representing a constituent's metadata
+ : @param $include-constituents a boolean if true, include all constituents
+ : @return an issue element
+ :)
+declare function springs:_constituent-struct($constituent as element(), $issueid as xs:string)
+as element()
+{
+    let $issuelabel := springs:_formatted-title(springs:_bmtn-object($issueid))
+    let $constituentid := xs:string($constituent/@xml:id)
+    let $title := springs:_constituent-title($constituent)
+    let $qtitle := concat("&quot;", $title,"&quot;")
+    let $contributors := 
+        for $stmt in $constituent//tei:respStmt
+        let $byline := normalize-space($stmt/tei:persName/text())
+        let $byline := concat("&quot;", $byline,"&quot;")
+        let $contributorid := if ($stmt/tei:persName/@ref) then xs:string($stmt/tei:persName/@ref) else " "
+        return
+            <contributor>
+                <byline>{ $byline }</byline>
+                <contributorid>{ $contributorid }</contributorid>
+            </contributor>
+    return
+        <constituent>
+            <issueid>{ $issueid }</issueid>
+            <constituentid>{ $constituentid }</constituentid>
+            <title>{ $qtitle }</title>
+            { for $c in $contributors return $c }
+        </constituent>
+};
+
+
 (:::: Utilities for Contributors ::::)
+
+
 declare function springs:_contributor-data($issue as element())
 as xs:string*
 {
-    let $issueid := xs:string($issue//tei:idno[@type='bmtnid'])
-    let $issuelabel := $issue//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:title/tei:seg[@type='main']
+    let $issueid := springs:_bmtnid-of($issue)
+    let $issuelabel := springs:_formatted-title($issue)
     let $contributions := $issue//tei:relatedItem[@type='constituent']
     for $contribution in $contributions
         let $constituentid := xs:string($contribution/@xml:id)
@@ -449,8 +481,6 @@ as xs:string*
     return
          ($header,$records)
 };
-
-(:::::::::::::::::::: END OF UTILITY FUNCTIONS ::::::::::::::::::::)
 
 
 
@@ -953,7 +983,9 @@ declare
   %rest:GET
   %rest:path("/springs/constituent/{$issueid}/{$constid}")
   %rest:produces("application/tei+xml")
-function springs:constituent-tei($issueid, $constid) {
+function springs:constituent-tei($issueid as xs:string, $constid as xs:string)
+as item()+
+{
     (<rest:response>
        <http:response>
           <http:header name="Content-Type" value="application/tei+xml"/>
@@ -990,27 +1022,52 @@ function springs:text($issueid) {
 
 (::::::::::::::::::: CONTRIBUTORS ::::::::::::::::::::)
 
+(:~
+ : contributors/$bmtnid as CSV
+ :
+ : Returns a representation of all the contributors to a
+ : Blue Mountain object. If the object is an issue, it
+ : returns all the contributors to the issue; if a magazine,
+ : all the contributors to the entire magazine.
+ :
+ : @param $bmtnid the id of a Blue Mountain object
+ : @returns a CSV file with the following fields
+ : bmtnid,label,contributorid,byline,constituentid,title
+ : embedded in a sequence (response, text)
+ :)
 declare
  %rest: GET
  %rest:path("/springs/contributors/{$bmtnid}")
  %output:method("text")
  %rest:produces("text/csv")
-function springs:contributors-csv($bmtnid) {
-    springs:_contributors-to($bmtnid)
+function springs:contributors-csv($bmtnid as xs:string)
+as item()+
+{
+    (<rest:response>
+       <http:response>
+          <http:header name="Content-Type" value="text/csv"/>
+          <http:header name="Access-Control-Allow-Origin" value="*"/>
+       </http:response>
+      </rest:response>,
+      springs:_contributors-to($bmtnid))
 };
 
 
+(:~
+ : contributors/$bmtnid as JSON
+ :)
 declare 
  %rest: GET
  %rest:path("/springs/contributors/{$issueid}")
  %output:method("json")
  %rest:produces("application/json")
-function springs:contributors-from-issue($issueid) {
+function springs:contributors-from-issue($issueid as xs:string)
+as item()+
+{
     let $issue := springs:_bmtn-object($issueid)
     let $bylines := $issue//tei:relatedItem[@type='constituent']//tei:respStmt[tei:resp = 'cre']/tei:persName
     let $issue-label := springs:_object-title($issue)
-  
-    return
+    let $responseBody := 
         <contributors> {
           for $byline in $bylines
           let $contributorid := 
@@ -1029,9 +1086,28 @@ function springs:contributors-from-issue($issueid) {
                 <contributionid>{ $constituentid }</contributionid>
                 <title> { $title }</title>
             </contributor>
-        } </contributors>
+        }</contributors>
+  
+    return
+    (<rest:response>
+       <http:response>
+          <http:header name="Content-Type" value="application/json"/>
+          <http:header name="Access-Control-Allow-Origin" value="*"/>
+       </http:response>
+      </rest:response>,
+      $responseBody)
     
 };
+
+
+
+(:~
+ : contributions?byline=$byline as JSON
+ :
+ : Returns metadata about all constituents in the corpus
+ : with byline $byline.
+ :
+ :)
 
 declare
  %rest:GET
@@ -1061,12 +1137,13 @@ as element()*
      } </contributions>
 };
 
+
 declare
  %rest:GET
  %rest:path("/springs/contributions")
  %rest:query-param("byline", "{$byline}", "stranger")
  %rest:produces("application/tei+xml")
-function springs:constituents-with-byline   ($byline)
+function springs:constituents-with-byline($byline)
 as element()*
 {
     let $constituents := collection($config:transcriptions)//tei:relatedItem[ft:query(.//tei:persName, $byline)]
@@ -1124,3 +1201,4 @@ as element()*
      </TEI>
      } </teiCorpus>
 };
+
