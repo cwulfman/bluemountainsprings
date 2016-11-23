@@ -72,11 +72,12 @@
             <h2>Magazines</h2>
         </header>
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <p>A representation of the magazines in Blue Mountain. If no bmtnid is given, the
                     service returns a representation of all the magazines. If a bmtnid is supplied,
                     it returns a representation of the corresponding magazine.</p>
-                <h3>Samples</h3>
+            </div>
+            <div class="col-md-6">
                 <ul>
                     <li>
                         <a href="../../restxq/springs/magazines">springs/magazines</a>
@@ -84,160 +85,539 @@
                     <li>
                         <a href="../../restxq/springs/magazines/bmtnaap">springs/magazines/bmtnaap</a>
                     </li>
+                    <li>curl -H'Accept: text/csv'
+                        http://bluemountain.princeton.edu/exist/restxq/springs/magazines</li>
+                    <li>curl -H'Accept: application/json'
+                        http://bluemountain.princeton.edu/exist/restxq/springs/magazines</li>
+                    <li>curl -H'Accept: application/json'
+                        http://bluemountain.princeton.edu/exist/restxq/springs/magazines/bmtnaap</li>
                 </ul>
             </div>
-            <div class="col-md-4">
-                <h3>Request</h3>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Method</th>
-                            <th>Accept Header</th>
-                            <th>URL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>GET</td>
-                            <td>text/csv</td>
-                            <td>magazines/bmtnid?</td>
-                        </tr>
-                        <tr>
-                            <td>〃</td>
-                            <td>application/json</td>
-                            <td>〃</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-md-4">
-                <h3>Response by Content Type</h3>
-                <p>The following tables show the format of the response to a GET, depending on the
-                    value of the Accept header.</p>
-                <h4>text/csv</h4>
-                <p>Conforms with RFC_4180, where the record fields are as shown.</p>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>field</th>
-                            <th>type</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>bmtnid</td>
-                            <td>xs:string</td>
-                        </tr>
-                        <tr>
-                            <td>primaryTitle</td>
-                            <td>xs:string</td>
-                        </tr>
-                        <tr>
-                            <td>primaryLanguage</td>
-                            <td>a delimited string of ISO 632-2 codes</td>
-                        </tr>
-                        <tr>
-                            <td>startDate</td>
-                            <td>w3cdtf</td>
-                        </tr>
-                        <tr>
-                            <td>endDate</td>
-                            <td>w3cdtf</td>
-                        </tr>
-                        <tr>
-                            <td>issues</td>
-                            <td>xs:anyuri</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <h4>application/json</h4>
-                <p>A JSON object with the following properties:</p>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>property</th>
-                            <th>type</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>bmtnid</td>
-                            <td>xs:string</td>
-                        </tr>
-                        <tr>
-                            <td>primaryTitle</td>
-                            <td>xs:string</td>
-                        </tr>
-                        <tr>
-                            <td>primaryLanguage</td>
-                            <td>a delimited string of ISO 632-2 codes</td>
-                        </tr>
-                        <tr>
-                            <td>startDate</td>
-                            <td>w3cdtf</td>
-                        </tr>
-                        <tr>
-                            <td>endDate</td>
-                            <td>w3cdtf</td>
-                        </tr>
-                        <tr>
-                            <td>issues</td>
-                            <td>xs:anyuri</td>
-                        </tr>
-                    </tbody>
-                </table>
+        </div>
+        <div>
+            <header>
+                <h3>text/csv</h3>
+            </header>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>text/csv</td>
+                                <td>magazines/bmtnid?</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Response conforms with RFC_4180, where the record fields are as
+                            shown.</caption>
+                        <thead>
+                            <tr>
+                                <th>field</th>
+                                <th>type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>bmtnid</td>
+                                <td>xs:string</td>
+                            </tr>
+                            <tr>
+                                <td>primaryTitle</td>
+                                <td>xs:string</td>
+                            </tr>
+                            <tr>
+                                <td>primaryLanguage</td>
+                                <td>a delimited string of ISO 632-2 codes</td>
+                            </tr>
+                            <tr>
+                                <td>startDate</td>
+                                <td>w3cdtf</td>
+                            </tr>
+                            <tr>
+                                <td>endDate</td>
+                                <td>w3cdtf</td>
+                            </tr>
+                            <tr>
+                                <td>issues</td>
+                                <td>xs:anyuri</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <h4/>
-        <p/>
+        <div>
+            <header>
+                <h3>application/json</h3>
+            </header>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>application/json</td>
+                                <td>magazines/bmtnid?</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Response: JSON object with the properties shown.</caption>
+                        <thead>
+                            <tr>
+                                <th>property</th>
+                                <th>type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>bmtnid</td>
+                                <td>xs:string</td>
+                            </tr>
+                            <tr>
+                                <td>primaryTitle</td>
+                                <td>xs:string</td>
+                            </tr>
+                            <tr>
+                                <td>primaryLanguage</td>
+                                <td>a delimited string of ISO 632-2 codes</td>
+                            </tr>
+                            <tr>
+                                <td>startDate</td>
+                                <td>w3cdtf</td>
+                            </tr>
+                            <tr>
+                                <td>endDate</td>
+                                <td>w3cdtf</td>
+                            </tr>
+                            <tr>
+                                <td>issues</td>
+                                <td>xs:anyuri</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </section>
+    <hr/>
     <section id="issues">
         <header>
             <h2>Issues</h2>
         </header>
-        <p>Get representations of magazine issues in Blue Mountain.</p>
-        <p>If a bmtnid of a magazine title is supplied, it returns a representation of all the
-            magazine's issues; if a bmtnid of an issue is supplied, the service returns a
-            representation of the corresponding issue.</p>
-        <table>
-            <caption>Request</caption>
-            <thead>
-                <tr>
-                    <th>Method</th>
-                    <th>Accept Header</th>
-                    <th>URL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>GET</td>
-                    <td>application/json</td>
-                    <td>issues/bmtnid</td>
-                </tr>
-                <tr>
-                    <td>〃</td>
-                    <td>text/plain</td>
-                    <td>〃</td>
-                </tr>
-                <tr>
-                    <td>〃</td>
-                    <td>application/tei+xml</td>
-                    <td>〃</td>
-                </tr>
-                <tr>
-                    <td>〃</td>
-                    <td>application/rdf+xml</td>
-                    <td>〃</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="row">
+            <div class="col-md-6">
+                <p>The issues/ service returns representations of magazine issues. The service
+                    behaves differently depending on the kind of resource that is requested:</p>
+                <ol>
+                    <li>if the resource is an issue, the service returns a representation of the
+                        issue.</li>
+                    <li>if the resource is a magazine, the service returns representations of all
+                        the issues of that magazine.</li>
+                </ol>
+            </div>
+            <div class="col-md-6">
+                <ul>
+                    <li>
+                        <a href="../../restxq/springs/issues/bmtnaap">springs/issues/bmtnaap</a>
+                    </li>
+                    <li>
+                        <a href="../../restxq/springs/issues/bmtnaap_1921-11_01">springs/issues/bmtnaap_1921-11_01</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div>
+            <header>
+                <h3>application/json</h3>
+            </header>
+            <div class="row">
+                <header>
+                    <p>If the resource is an issue, the service returns a representation of the issue.</p>
+                </header>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>application/json</td>
+                                <td>issues/<em>issueid</em>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Response</caption>
+                        <thead>
+                            <tr>
+                                <th>property</th>
+                                <th>type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>bmtnid</td>
+                                <td>string</td>
+                            </tr>
+                            <tr>
+                                <td>title</td>
+                                <td>string</td>
+                            </tr>
+                            <tr>
+                                <td>volume</td>
+                                <td>string</td>
+                            </tr>
+                            <tr>
+                                <td>number</td>
+                                <td>string</td>
+                            </tr>
+                            <tr>
+                                <td>pubDate</td>
+                                <td>w3cdtf</td>
+                            </tr>
+                            <tr>
+                                <td>pubPlace</td>
+                                <td>string</td>
+                            </tr>
+                            <tr>
+                                <td>editors</td>
+                                <td>list of editor objects</td>
+                            </tr>
+                            <tr>
+                                <td>contributors</td>
+                                <td>list of contributor objects</td>
+                            </tr>
+                            <tr>
+                                <td>contributions</td>
+                                <td>lists of Illustration, TextContent, SponsoredAdvertisement, and MusicalScore
+                                objects where applicable</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <header>
+                    <p>If the resource is an magazine, the service returns a representation of each of the 
+                        issues in the magazine.</p>
+                </header>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>application/json</td>
+                                <td>issues/<em>magid</em>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Response</caption>
+                        <thead>
+                            <tr>
+                                <th>property</th>
+                                <th>type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>bmtnid</td>
+                                <td>string</td>
+                            </tr>
+                            <tr>
+                                <td>primaryTitle</td>
+                                <td>string</td>
+                            </tr>
+                            <tr>
+                                <td>primaryLanguage</td>
+                                <td>string</td>
+                            </tr>
+                            <tr>
+                                <td>startDate</td>
+                                <td>w3cdtf</td>
+                            </tr>
+                            <tr>
+                                <td>endDate</td>
+                                <td>w3cdtf</td>
+                            </tr>
+                            <tr>
+                                <td>uri</td>
+                                <td>uri</td>
+                            </tr>
+                            <tr>
+                                <td>issues</td>
+                                <td>a list of issue objects
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>property</th>
+                                                <th>type</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>id</td>
+                                                <td>string</td>
+                                            </tr>
+                                            <tr>
+                                                <td>date</td>
+                                                <td>w3cdtf</td>
+                                            </tr>
+                                            <tr>
+                                                <td>uri</td>
+                                                <td>uri</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div><!-- TEI -->
+        <div>
+            <header>
+                <h3>application/tei+xml</h3>
+            </header>
+            <p>For large issues and large magazine runs, this service will 
+                return very large data sets in Blue Mountain 1.0.
+                A future version will use status 413 to indicate
+                an excessively large response and compress the response
+                before transmission or implement status 207 to coordinate
+                partial file tranfers.</p>
+            <div class="row">
+                <header>
+                    <p>If the requested resource is an issue, return a TEI document representing the issue.</p>
+                </header>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>application/tei+xml</td>
+                                <td>issues/<em>issueid</em>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <header>
+                        <h4>Response</h4>
+                    </header>
+                    <p>A TEI XML document. See <a href="http://www.tei-c.org">http://www.tei-c.org</a>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <header>
+                    <p>If the requested resource is a magazine, return a TEI corpus document representing 
+                        the full run of the magazine. This can be very large.</p>
+                </header>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>application/tei+xml</td>
+                                <td>issues/<em>magid</em>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <header>
+                        <h4>Response</h4>
+                    </header>
+                    <p>A teiCorpus XML document. See <a href="http://www.tei-c.org">http://www.tei-c.org</a>
+                    </p>
+                </div>
+            </div>
+        </div><!-- end TEI --><!-- plain text -->
+        <div>
+            <header>
+                <h3>text/plain</h3>
+            </header>
+            <p>For large issues and large magazine runs, this service will 
+                return very large data sets in Blue Mountain 1.0.
+                A future version will use status 413 to indicate
+                an excessively large response and compress the response
+                before transmission or implement status 207 to coordinate
+                partial file tranfers.</p>
+            <div class="row">
+                <header>
+                    <p>If the requested resource is an issue, return a bag of words for the issue.</p>
+                </header>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>application/tei+xml</td>
+                                <td>issues/<em>issueid</em>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <header>
+                        <h4>Response</h4>
+                    </header>
+                    <p>A text blob</p>
+                </div>
+            </div>
+            <div class="row">
+                <header>
+                    <p>If the requested resource is a magazine, return a bag of words representing 
+                        the full run of the magazine. This can be very large.</p>
+                </header>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>application/tei+xml</td>
+                                <td>issues/<em>magid</em>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <header>
+                        <h4>Response</h4>
+                    </header>
+                    <p>A bag of words</p>
+                </div>
+            </div>
+        </div><!-- end plain text --><!-- rdf -->
+        <div>
+            <header>
+                <h3>application/rdf+xml</h3>
+            </header>
+            <p>In Blue Mountain version 1.0, this service is aimed primarily at
+                the MODNETS aggregator, and it provides an RDF representation
+                that complies with its requirements: COLLEX-flavored RDF.</p>
+            <p>see <a href="http://www.modnets.org/">http://www.modnets.org/</a> and
+                <a href="http://wiki.collex.org/index.php/Submitting_RDF">http://wiki.collex.org/index.php/Submitting_RDF</a>
+            </p>
+            <div class="row">
+                <header>
+                    <p>This format supports only issues.</p>
+                </header>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>application/rdf+xml</td>
+                                <td>issues/<em>issueid</em>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <header>
+                        <h4>Response</h4>
+                    </header>
+                    <p>An RDF object serialized as XML.</p>
+                </div>
+            </div>
+        </div><!-- end rdf -->
     </section>
     <section id="constituents">
         <header>
             <h2>Constituents</h2>
         </header>
         <p>Get representations of constituents of a single issue in Blue Mountain.</p>
-        <table>
+        <table class="table">
             <caption>Request</caption>
             <thead>
                 <tr>
@@ -260,7 +640,7 @@
             <h2>Constituent</h2>
         </header>
         <p>Get a representation of an individual constituent in an issue in Blue Mountain.</p>
-        <table>
+        <table class="table">
             <caption>Request</caption>
             <thead>
                 <tr>
@@ -291,7 +671,7 @@
             that of an issue, returns a representation of all the contributors to that issue; if
             bmtnid is that of a magazine, returns a representation of all contributors to the
             magazine in all issues.</p>
-        <table>
+        <table class="table">
             <caption>Request</caption>
             <thead>
                 <tr>
@@ -321,7 +701,7 @@
         <p>Get representation of contributions to a magazine having a particular byline. If the
             request is for CSV, returns a table of values; if the request is for TEI, returns a TEI
             Corpus.</p>
-        <table>
+        <table class="table">
             <caption>Request</caption>
             <thead>
                 <tr>
