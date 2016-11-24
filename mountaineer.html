@@ -7,21 +7,62 @@
     <nav>
         <ul>
             <li>
-                <a href="#use-with-voyant">Using Blue Mountain Springs with Voyant</a>
+                <a href="#use-with-voyant">Corpus Analysis with Voyant Tools</a>
+            </li>
+            <li>
+                <a href="#use-with-palladio">Trace Publication Networks with Palladio</a>
             </li>
         </ul>
     </nav>
     <section id="use-with-voyant">
         <header>
-            <h2>Using with Voyant</h2>
+            <h2>See Through Texts with Voyant</h2>
         </header>
         <p>
-            <a href="http://voyant-tools.org/">Voyant Tools</a> is a popular web-based workbench for reading and analyzing
-            texts.  Read more about it <a href="http://voyant-tools.org/docs/#!/guide/about">here</a>.
-        </p>
-        <p>
-            Voyant allows you to upload your own datasets.
-        </p>
-        <pre class="pre-scrollable">curl -H'Accept:application/tei+xml' http://bluemountain.princeton.edu/exist/restxq/springs/contributions?byline=Tzara &gt; /tmp/tzara.tei.xml</pre>
+            <a href="http://voyant-tools.org/">Voyant Tools</a> is a popular web-based workbench for
+            reading and analyzing texts. Read more about it <a href="http://voyant-tools.org/docs/#!/guide/about">here</a>. </p>
+        <p> Voyant allows you to upload your own datasets. You can use the
+                <code>contributions</code> spring to extract all the text by a particular writer
+            into a TEI Corpus and then explore it in Voyant. If you wanted to use Voyant to explore
+            the writings of Tristan Tzara, for example, you would do the following: </p>
+        <ol>
+            <li>Use the spring to extract the corpus and write it to your local computer.
+                <pre class="pre-scrollable">curl -H'Accept:application/tei+xml' http://bluemountain.princeton.edu/exist/restxq/springs/contributions?byline=Tzara &gt; /tmp/tzara.tei.xml</pre>
+            </li>
+            <li> Go to <a href="http://voyant-tools.org/">Voyant Tools</a>. </li>
+            <li> In the <code>options</code> menu, change Input Format from Auto Detect to TEI
+                Corpus. </li>
+            <li> Click on the Upload button, navigate to /tmp, and select tzara.tei.xml. </li>
+        </ol>
+        <p> Your corpus should open in Voyant's main window. Explore! </p>
+    </section>
+    <section id="use-with-palladio">
+        <header>
+            <h2>Publication Networks</h2>
+            <p>Scenario: You want to look at patterns of co-occurance in Broom.</p>
+        </header>
+        <ol>
+            <li>
+                <pre>curl http://bluemountain.princeton.edu/exist/restxq/springs/contributors/bmtnaap -o /tmp/broom.csv</pre>
+            </li>
+            <li>
+                <p> You may wish to clean up stray punctuation and the like with <a href="http://openrefine.org/">Open Refine</a>. </p>
+            </li>
+            <li>
+                <p> Go to <a href="http://hdlab.stanford.edu/palladio/">Palladio</a>. </p>
+            </li>
+            <li>
+                <p> Import your file by dragging and dropping it into the data-entry space and
+                    clicking Load </p>
+            </li>
+            <li>
+                <p> Verify your data by clicking on the red dots and verifying the special
+                    characters </p>
+            </li>
+            <li>
+                <p> Explore various graph settings </p>
+            </li>
+        </ol>
+        <p>Try using <a href="http://raw.densitydesign.org/">Raw</a>, too.</p>
     </section>
 </article>
