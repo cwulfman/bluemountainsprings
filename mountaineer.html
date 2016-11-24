@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<article xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <div class="page-header">
+        <h1>Blue Mountaineer <small>Using Blue Mountain Springs</small>
+        </h1>
+    </div>
+    <nav>
+        <ul>
+            <li>
+                <a href="#use-with-voyant">Using Blue Mountain Springs with Voyant</a>
+            </li>
+        </ul>
+    </nav>
+    <section id="use-with-voyant">
+        <header>
+            <h2>Using with Voyant</h2>
+        </header>
+        <p>
+            <a href="http://voyant-tools.org/">Voyant Tools</a> is a popular web-based workbench for reading and analyzing
+            texts.  Read more about it <a href="http://voyant-tools.org/docs/#!/guide/about">here</a>.
+        </p>
+        <p>
+            Voyant allows you to upload your own datasets.
+        </p>
+        <pre class="pre-scrollable">curl -H'Accept:application/tei+xml' http://bluemountain.princeton.edu/exist/restxq/springs/contributions?byline=Tzara &gt; /tmp/tzara.tei.xml</pre>
+    </section>
+</article>
