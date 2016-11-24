@@ -255,7 +255,8 @@
             </header>
             <div class="row">
                 <header>
-                    <p>If the resource is an issue, the service returns a representation of the issue.</p>
+                    <p>If the resource is an issue, the service returns a representation of the
+                        issue.</p>
                 </header>
                 <div class="col-md-6">
                     <table class="table">
@@ -321,8 +322,8 @@
                             </tr>
                             <tr>
                                 <td>contributions</td>
-                                <td>lists of Illustration, TextContent, SponsoredAdvertisement, and MusicalScore
-                                objects where applicable</td>
+                                <td>lists of Illustration, TextContent, SponsoredAdvertisement, and
+                                    MusicalScore objects where applicable</td>
                             </tr>
                         </tbody>
                     </table>
@@ -330,8 +331,8 @@
             </div>
             <div class="row">
                 <header>
-                    <p>If the resource is an magazine, the service returns a representation of each of the 
-                        issues in the magazine.</p>
+                    <p>If the resource is an magazine, the service returns a representation of each
+                        of the issues in the magazine.</p>
                 </header>
                 <div class="col-md-6">
                     <table class="table">
@@ -389,8 +390,7 @@
                             </tr>
                             <tr>
                                 <td>issues</td>
-                                <td>a list of issue objects
-                                    <table class="table">
+                                <td>a list of issue objects <table class="table">
                                         <thead>
                                             <tr>
                                                 <th>property</th>
@@ -423,15 +423,14 @@
             <header>
                 <h3>application/tei+xml</h3>
             </header>
-            <p>For large issues and large magazine runs, this service will 
-                return very large data sets in Blue Mountain 1.0.
-                A future version will use status 413 to indicate
-                an excessively large response and compress the response
-                before transmission or implement status 207 to coordinate
-                partial file tranfers.</p>
+            <p>For large issues and large magazine runs, this service will return very large data
+                sets in Blue Mountain 1.0. A future version will use status 413 to indicate an
+                excessively large response and compress the response before transmission or
+                implement status 207 to coordinate partial file tranfers.</p>
             <div class="row">
                 <header>
-                    <p>If the requested resource is an issue, return a TEI document representing the issue.</p>
+                    <p>If the requested resource is an issue, return a TEI document representing the
+                        issue.</p>
                 </header>
                 <div class="col-md-6">
                     <table class="table">
@@ -463,8 +462,8 @@
             </div>
             <div class="row">
                 <header>
-                    <p>If the requested resource is a magazine, return a TEI corpus document representing 
-                        the full run of the magazine. This can be very large.</p>
+                    <p>If the requested resource is a magazine, return a TEI corpus document
+                        representing the full run of the magazine. This can be very large.</p>
                 </header>
                 <div class="col-md-6">
                     <table class="table">
@@ -499,15 +498,14 @@
             <header>
                 <h3>text/plain</h3>
             </header>
-            <p>For large issues and large magazine runs, this service will 
-                return very large data sets in Blue Mountain 1.0.
-                A future version will use status 413 to indicate
-                an excessively large response and compress the response
-                before transmission or implement status 207 to coordinate
-                partial file tranfers.</p>
+            <p>For large issues and large magazine runs, this service will return very large data
+                sets in Blue Mountain 1.0. A future version will use status 413 to indicate an
+                excessively large response and compress the response before transmission or
+                implement status 207 to coordinate partial file tranfers.</p>
             <div class="row">
                 <header>
-                    <p>If the requested resource is an issue, return a bag of words for the issue.</p>
+                    <p>If the requested resource is an issue, return a bag of words for the
+                        issue.</p>
                 </header>
                 <div class="col-md-6">
                     <table class="table">
@@ -538,7 +536,7 @@
             </div>
             <div class="row">
                 <header>
-                    <p>If the requested resource is a magazine, return a bag of words representing 
+                    <p>If the requested resource is a magazine, return a bag of words representing
                         the full run of the magazine. This can be very large.</p>
                 </header>
                 <div class="col-md-6">
@@ -573,11 +571,10 @@
             <header>
                 <h3>application/rdf+xml</h3>
             </header>
-            <p>In Blue Mountain version 1.0, this service is aimed primarily at
-                the MODNETS aggregator, and it provides an RDF representation
-                that complies with its requirements: COLLEX-flavored RDF.</p>
-            <p>see <a href="http://www.modnets.org/">http://www.modnets.org/</a> and
-                <a href="http://wiki.collex.org/index.php/Submitting_RDF">http://wiki.collex.org/index.php/Submitting_RDF</a>
+            <p>In Blue Mountain version 1.0, this service is aimed primarily at the MODNETS
+                aggregator, and it provides an RDF representation that complies with its
+                requirements: COLLEX-flavored RDF.</p>
+            <p>see <a href="http://www.modnets.org/">http://www.modnets.org/</a> and <a href="http://wiki.collex.org/index.php/Submitting_RDF">http://wiki.collex.org/index.php/Submitting_RDF</a>
             </p>
             <div class="row">
                 <header>
@@ -616,24 +613,190 @@
         <header>
             <h2>Constituents</h2>
         </header>
-        <p>Get representations of constituents of a single issue in Blue Mountain.</p>
-        <table class="table">
-            <caption>Request</caption>
-            <thead>
-                <tr>
-                    <th>Method</th>
-                    <th>Accept Header</th>
-                    <th>URL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>GET</td>
-                    <td>application/json</td>
-                    <td>constituents/issueid</td>
-                </tr>
-            </tbody>
-        </table>
+        <p>The addressable portions of the magazine issues -- articles, illustrations,
+            advertisements -- are the issue's constituents. They are represented in two ways:</p>
+        <ol>
+            <li>descriptive metadata about the constituent is encoded in the teiHeader as a
+                relatedItem with an xml id attribute; </li>
+            <li>the full text of the constituent (if it is a textual constituent) is encoded in a
+                div element linked to the metadata element with a corresp attribute. </li>
+        </ol>
+        <p>The constituents service returns representations of the metadata or the full text,
+            depending on the content type requested.</p>
+        <div>
+            <header>
+                <h3>application/json</h3>
+            </header>
+            <p>If JSON is requested, the constituents/ service delivers a JSON-based representation
+                of the metadata.</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>application/json</td>
+                                <td>constituents/<em>issueid</em>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Response: an issue object with the properties below.</caption>
+                        <thead>
+                            <tr>
+                                <th>property</th>
+                                <th>type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>id</td>
+                                <td>string</td>
+                            </tr>
+                            <tr>
+                                <td>date</td>
+                                <td>w3cdtf</td>
+                            </tr>
+                            <tr>
+                                <td>url</td>
+                                <td>url</td>
+                            </tr>
+                            <tr>
+                                <td>constituent+</td>
+                                <td>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>property</th>
+                                                <th>type</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>issueid</td>
+                                                <td>string</td>
+                                            </tr>
+                                            <tr>
+                                                <td>constituentid</td>
+                                                <td>string</td>
+                                            </tr>
+                                            <tr>
+                                                <td>uri</td>
+                                                <td>uri</td>
+                                            </tr>
+                                            <tr>
+                                                <td>title</td>
+                                                <td>string</td>
+                                            </tr>
+                                            <tr>
+                                                <td>contributor+</td>
+                                                <td>
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>property</th>
+                                                                <th>type</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>byline</td>
+                                                                <td>string</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>contributorid</td>
+                                                                <td>string</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div><!-- magid -->
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Request</caption>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Accept Header</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GET</td>
+                                <td>application/json</td>
+                                <td>constituents/<em>magid</em>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <caption>Response: one or more issue objects with the properties below.</caption>
+                        <thead>
+                            <tr>
+                                <th>property</th>
+                                <th>type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>id</td>
+                                <td>string</td>
+                            </tr>
+                            <tr>
+                                <td>date</td>
+                                <td>w3cdtf</td>
+                            </tr>
+                            <tr>
+                                <td>url</td>
+                                <td>url</td>
+                            </tr>
+                            <tr>
+                                <td>constituent+</td>
+                                <td>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>property</th>
+                                                <th>type</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>uri</td>
+                                                <td>uri</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div><!-- end magid -->
+        </div>
     </section>
     <section id="constituent">
         <header>

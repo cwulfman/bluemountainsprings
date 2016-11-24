@@ -397,11 +397,19 @@ as element()
         <date>{ springs:_issue-date($bmtnobj) }</date>
         <url> { $config:springs-root || '/issues/' || $bmtnid }</url>
        {
-         if ($include-constituents) then
-            for $constituent in $bmtnobj//tei:relatedItem[@type='constituent']
+         for $constituent in $bmtnobj//tei:relatedItem[@type='constituent']
+         return
+         if ($include-constituents) 
+         then
+            springs:_constituent-struct($constituent, $bmtnid)
+         else
+            let $constituentid := xs:string($constituent/@xml:id)
+            let $uri := $config:springs-root || '/constituent/' || $bmtnid || '/' || $constituentid
             return
-                springs:_constituent-struct($constituent, $bmtnid)
-        else ()
+            <constituent>
+                <uri>{ $uri }</uri>
+            </constituent>
+
        }
      </issue>
 };
@@ -924,7 +932,7 @@ as item()+
        else
          <issues>
             { for $issue in springs:_issues-of-magazine($bmtnid)
-              return springs:_issue-struct($issue, true())
+              return springs:_issue-struct($issue, false())
             }
          </issues>
     return
