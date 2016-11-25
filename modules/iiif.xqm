@@ -1,12 +1,22 @@
 xquery version "3.0";
-
+(:~
+ : This module provides the functions supporting the Blue Mountain Springs
+ : implementation of the IIIF Presentation API.
+ :
+ : The API delivers IIIF manifests and collections by using XSLT to transform
+ : a Blue Mountain METS/ALTO/MODS object into an intermediate representation
+ : and serializing it as JSON.
+ :
+ : @see http://iiif.io/ 
+ : @author Clifford Wulfman
+ : @version 1.0.0
+ :)
 module namespace iiif = "http://bluemountain.princeton.edu/apps/springs/iiif";
 import module namespace config="http://bluemountain.princeton.edu/apps/springs/config" at "config.xqm";
 import module namespace request = "http://exist-db.org/xquery/request";
 import module namespace response = "http://exist-db.org/xquery/response";
 
 import module namespace rest = "http://exquery.org/ns/restxq" ;
-(:  declare namespace rest="http://exquery.org/ns/restxq"; :)
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace http = "http://expath.org/ns/http-client"; 
 
@@ -52,7 +62,9 @@ declare function iiif:collection-top-xml()
         <collection level="top">
             <titles>{ $recs }</titles>
         </collection>,
-    $xsl, ())
+    $xsl, <parameters>
+                <param name="baseURI" value="{ $config:iiif-root }"/>
+            </parameters>)
     )
 };
 

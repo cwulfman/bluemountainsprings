@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:bmtn-mods="http://bluemountain.princeton.edu/mods" version="2.0" exclude-result-prefixes="xs xd mods">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl" xmlns:bmtn-mods="http://bluemountain.princeton.edu/mods" version="2.0" exclude-result-prefixes="xs xd mods">
     <xd:doc scope="stylesheet">
         <xd:desc>
             <xd:p>
@@ -38,8 +38,8 @@
     <xsl:function name="mods:display-date">
         <xsl:param name="modsRec"/>
         <xsl:choose>
-            <xsl:when test="$modsRec/mods:originInfo/mods:dateIssued[@point='start'] and             $modsRec/mods:originInfo/mods:dateIssued[@point='end']">
-                <xsl:value-of select="string-join(                     ($modsRec/mods:originInfo/mods:dateIssued[@point='start'],                 $modsRec/mods:originInfo/mods:dateIssued[@point='end'] ), '-')"/>
+            <xsl:when test="$modsRec/mods:originInfo/mods:dateIssued[@point='start'] and $modsRec/mods:originInfo/mods:dateIssued[@point='end']">
+                <xsl:value-of select="string-join(($modsRec/mods:originInfo/mods:dateIssued[@point='start'], $modsRec/mods:originInfo/mods:dateIssued[@point='end'] ), '-')"/>
             </xsl:when>
             <xsl:when test="$modsRec/mods:originInfo/mods:dateIssued[@point='start']">
                 <xsl:value-of select="concat($modsRec/mods:originInfo/mods:dateIssued[@point='start'], '-')"/>
