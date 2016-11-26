@@ -11,6 +11,7 @@ declare namespace templates="http://exist-db.org/xquery/templates";
 declare namespace repo="http://exist-db.org/xquery/repo";
 declare namespace expath="http://expath.org/ns/pkg";
 
+
 (: 
     Determine the application root collection from the current module load path.
 :)
@@ -30,11 +31,10 @@ declare variable $config:app-root :=
 ;
 
 declare variable $config:data-root        as xs:string { "/db/bmtn-data" };
-declare variable $config:metadata        as xs:string { $config:data-root || "/metadata" };
-declare variable $config:transcriptions  as xs:string { $config:data-root || "/transcriptions" };
-
-declare variable $config:springs-root    as xs:string { "http://localhost:8080/exist/restxq/springs" };
-declare variable $config:iiif-root    as xs:string { "http://localhost:8080/exist/restxq/iiif" };
+declare variable $config:metadata         as xs:string { $config:data-root || "/metadata" };
+declare variable $config:transcriptions   as xs:string { $config:data-root || "/transcriptions" };
+declare variable $config:springs-root     as xs:string { "http://localhost:8080/exist/restxq/springs" };
+declare variable $config:iiif-root        as xs:string { "http://localhost:8080/exist/restxq/iiif" };
 
 declare variable $config:repo-descriptor := doc(concat($config:app-root, "/repo.xml"))/repo:meta;
 
