@@ -1,0 +1,2 @@
+class Constituent
+end
