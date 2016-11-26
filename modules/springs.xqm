@@ -1,13 +1,28 @@
 xquery version "3.0";
 (:~
+ : Module Name: springs.xqm
+ :
+ : @author Clifford Wulfman
+ :
+ : @version 1.1.0
+ : 
  : This module provides the resource functions supporting the Blue Mountain Springs
  : API. They conform with the RESTXQ 1.0 specification for writing RESTful services in XQuery.
  :
+ : The Blue Mountain Springs API is implemented as a suite of
+ : XQuery Resource Functions as defined by the RESTXQ specification.
+ : That specification uses XQuery 3.0 annotations to associate
+ : xquery functions with HTTP interactions.
+ :
+ : When enabled in eXist-db, RESTXQ establishes a registry of 
+ : resource functions in the database and routes HTTP requests to
+ : the matching functions. RESTXQ enables content negotiation by
+ : supporting annotations that specify what content type a function
+ : produces. Different functions can be written to handle different
+ : content specifications.
  :
  : @see http://www.exquery.org/
  : @see http://exquery.github.io/exquery/exquery-restxq-specification/restxq-1.0-specification.html
- : @author Clifford Wulfman
- : @version 1.1.0
  :)
 module namespace springs = "http://bluemountain.princeton.edu/apps/springs";
 
@@ -20,27 +35,6 @@ import module namespace rest = "http://exquery.org/ns/restxq" ;
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace http = "http://expath.org/ns/http-client"; 
 declare namespace tei="http://www.tei-c.org/ns/1.0";
-
-(:::::::::::::::::::: RESOURCE FUNCTIONS ::::::::::::::::::::)
-
-(:~
- : Resource Functions
- : 
- : The Blue Mountain Springs API is implemented as a suite of
- : XQuery Resource Functions as defined by the RESTXQ specification.
- : That specification uses XQuery 3.0 annotations to associate
- : xquery functions with HTTP interactions.
- :
- : When enabled in eXist-db, RESTXQ establishes a registry of 
- : resource functions in the database and routes HTTP requests to
- : the matching functions. RESTXQ enables content negotiation by
- : supporting annotations that specify what content type a function
- : produces. Different functions can be written to handle different
- : content specifications.
- : 
- : @see http://exquery.github.io/exquery/exquery-restxq-specification/restxq-1.0-specification.html
- :)
-
 
 (:~
  : /springs/api
@@ -57,8 +51,6 @@ function springs:top()
 {
     exrest:find-resource-functions(xs:anyURI('/db/apps/bmtnsprings/modules/springs.xqm'))
 };
-
-
 
 
 (:~

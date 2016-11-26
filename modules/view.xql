@@ -12,7 +12,7 @@ import module namespace templates="http://exist-db.org/xquery/templates" ;
  : templating.
  :)
 import module namespace config="http://bluemountain.princeton.edu/apps/springs/config" at "config.xqm";
-import module namespace app="http://bluemountain.princeton.edu/apps/springs/templates" at "app.xql";
+import module namespace app="http://bluemountain.princeton.edu/apps/springs/app" at "app.xql";
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 

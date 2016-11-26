@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<article xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <header class="page-header">
+        <h1>Installing Blue Mountain Springs</h1>
+    </header>
+    <p> Blue Mountain Springs has been tested with <a href="https://bintray.com/existdb/releases/exist/3.0.RC1/view/files#files/">
+        eXist Version 3.0 RC1</a>. You may also choose to <a href="https://github.com/eXist-db/exist">build eXist from scratch</a>.</p>
+    <section>
+        <header>
+            <h2>Dependencies</h2>
+        </header>
+        <p> Blue Mountain Springs requires the FunctX XQuery Library, which can be installed through
+            the eXist Package Manager. </p>
+        <p> Blue Mountain Springs requires that a database of Blue Mountain objects be installed in
+            the same eXist-db instance. </p>
+        <ul>
+            <li>The Springs API requires the <a href="https://github.com/Princeton-CDH/bluemountain-transcriptions">TEI editions</a>.</li>
+            <li>The IIIF API requires the <a href="https://github.com/pulibrary/BlueMountain">METS/ALTO data</a>.</li>
+        </ul>
+    </section>
+    <section>
+        <header>
+            <h2>Preparation</h2>
+        </header>
+        <p> You should begin by installing the Blue Mountain data into your eXist-db instance.
+            Instructions for doing so can be found in the repositories containing the data: </p>
+        <ul>
+            <li>
+                <a href="https://github.com/pulibrary/BlueMountain">https://github.com/pulibrary/BlueMountain</a>
+            </li>
+            <li>
+                <a href="https://github.com/Princeton-CDH/bluemountain-transcriptions">https://github.com/Princeton-CDH/bluemountain-transcriptions</a>
+            </li>
+        </ul>
+        <p> In particular, you should be sure to note the location of the bmtn-data collection
+            specified in the db/build.xml files in each repository. By default it is
+                <code>/db/bmtn-data</code>. </p>
+    </section>
+    <section>
+        <header>
+            <h2>Building</h2>
+        </header>
+        <p> After cloning or downloading the git repository, you may need to configure the location
+            of the Blue Mountain data collections in the database and the base URLs of the Blue
+            Mountain Springs services. By default, Blue Mountain Springs and the IIIF service are
+            configured to run on <code>http://localhost</code> at port <code>8080</code>. The
+            user-configurable variables are the following: </p>
+        <ul>
+            <li>
+                <code>$config:springs-root</code>
+            </li>
+            <li>
+                <code>$config:iiif-root</code>
+            </li>
+            <li>
+                <code>$config:data-root</code>
+            </li>
+            <li>
+                <code>$config:metadata</code>
+            </li>
+            <li>
+                <code>$config:transcriptions</code>
+            </li>
+        </ul>
+        <ol>
+            <li>If necessary, edit <code>modules/config.xqm</code>.</li>
+            <li>From the top-level directory, run <code>ant</code>.</li>
+        </ol>
+        <p>Ant will create a .xar file in the build/ directory.</p>
+    </section>
+    <section>
+        <header>
+            <h2>Installing</h2>
+        </header>
+        <p> Point your web browser at the eXist-db Dashboard (<a href="http://localhost:8080/exist/apps/dashboard/index.html">http://localhost:8080/exist/apps/dashboard/index.html</a> if you are running
+            locally)  and <a href="http://exist-db.org/exist/apps/doc/dashboard.xml#D2.2.4">use the package
+            manager</a> to install the Blue Mountain Springs .xar package.</p>
+    </section>
+</article>
