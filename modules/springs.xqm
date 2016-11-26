@@ -791,7 +791,7 @@ as item()+
  : If the requested resource is an issue,
  : the service retrieves the issue tei:TEI 
  : document from the database and converts it
- : to plain text using an xslt transformation.
+ : to JSON using an xslt transformation.
  :
  : If the requested resource is a magazine,
  : the service iterates over all the issues in the
