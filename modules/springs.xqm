@@ -44,6 +44,7 @@ declare namespace tei="http://www.tei-c.org/ns/1.0";
  :
  : @see http://exquery.github.io/exquery/exquery-restxq-specification/restxq-1.0-specification.html#rest-resource-functions
  :)
+ 
 declare
  %rest:GET
  %rest:path("/springs/api")
@@ -524,29 +525,6 @@ as item()+
 };
 
 
-(::::::::::::::::::: TEXT ::::::::::::::::::::)
-(:: I think this service is redundant ::)
-
-declare
-    %rest:GET
-    %rest:path("/springs/text/{$issueid}/{$constid}")
-    %output:method("text")
-function springs:constituent-text($issueid as xs:string, $constid as xs:string)
-{
-    let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
-    let $constituent := app:constituent($issueid, $constid)
-    return transform:transform($constituent, $xsl, ())
-};
-
-
-declare
- %rest:GET
- %rest:path("/springs/text/{$issueid}")
-function springs:text($issueid) {
-    let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
-    return transform:transform(app:bmtn-object($issueid), $xsl, ())
-};
-
 
 (::::::::::::::::::: CONTRIBUTORS ::::::::::::::::::::)
 
@@ -636,16 +614,17 @@ as item()+
  : with byline $byline.
  :
  :)
-
 declare
  %rest:GET
  %rest:path("/springs/contributions")
- %rest:query-param("byline", "{$byline}", "stranger")
+ %rest:query-param("byline", "{$byline}", "")
  %output:method("json")
  %rest:produces("application/json")
-function springs:constituents-with-byline-json($byline)
-as element()*
+function springs:constituents-with-byline-json($byline as xs:string*)
+as item()*
 {
+    let $responseBody :=
+    if ($byline) then
     <contributions> {
     for $constituent in collection($config:transcriptions)//tei:relatedItem[ft:query(.//tei:persName, $byline)]
     let $title := app:constituent-title($constituent)
@@ -663,6 +642,16 @@ as element()*
         <uri>{ $config:springs-root || '/constituent/' || $issueid || '/' || $constid }</uri>
      </contribution>
      } </contributions>
+     else ()
+     
+     return
+    (<rest:response>
+       <http:response>
+          <http:header name="Content-Type" value="application/json"/>
+          <http:header name="Access-Control-Allow-Origin" value="*"/>
+       </http:response>
+      </rest:response>,
+      $responseBody)
 };
 
 
@@ -674,8 +663,13 @@ declare
 function springs:constituents-with-byline($byline)
 as element()*
 {
-    let $constituents := collection($config:transcriptions)//tei:relatedItem[ft:query(.//tei:persName, $byline)]
-    return
+    let $constituents := 
+        if ($byline) then
+            collection($config:transcriptions)//tei:relatedItem[ft:query(.//tei:persName, $byline)]
+        else ()
+    
+    let $responseBody :=
+    if ($constituents) then
     <teiCorpus xmlns="http://www.tei-c.org/ns/1.0">
      <teiHeader>
          <fileDesc>
@@ -728,5 +722,14 @@ as element()*
         </text>
      </TEI>
      } </teiCorpus>
+     else ()
+     return
+    (<rest:response>
+       <http:response>
+          <http:header name="Content-Type" value="application/tei+xml"/>
+          <http:header name="Access-Control-Allow-Origin" value="*"/>
+       </http:response>
+      </rest:response>,
+      $responseBody)     
 };
 

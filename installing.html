@@ -76,4 +76,37 @@
             locally)  and <a href="http://exist-db.org/exist/apps/doc/dashboard.xml#D2.2.4">use the package
             manager</a> to install the Blue Mountain Springs .xar package.</p>
     </section>
+    <section>
+        <header>
+            <h2>Testing</h2>
+        </header>
+        <p>
+            Blue Mountain Springs comes with a test suite that can be used for regression testing, and a top-level functional test program. 
+            Each assumes the pilot database has been installed.
+        </p>
+        <div>
+            <h3>Unit Testing</h3>
+            <p>Make sure eXist is running.</p>
+            <ol>
+                <li>
+                    <kbd>cd</kbd> into the test/ directory.</li>
+                <li>run <code>gem install bundler</code>
+                </li>
+                <li>run <code>bundle install</code>
+                </li>
+                <li>run <code>bundle exec rspec</code>
+                </li>
+            </ol>
+        </div>
+        <div>
+            <h3>Functional Testing</h3>
+            <p>Make sure eXist is running.</p>
+            <ol>
+                <li>
+                    <kbd>cd</kbd> into the test/ directory</li>
+                <li>run <code>ruby testsprings.rb</code>
+                </li>
+            </ol>
+        </div>
+    </section>
 </article>
