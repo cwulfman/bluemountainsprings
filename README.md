@@ -6,17 +6,20 @@ a digital library of avant-garde magazines.
 
 It is written in XQuery and XSLT and uses [eXist-db](http://exist-db.org/exist/apps/homepage/index.html), version 3.
 
-For more documentation about Blue Mountain Springs, 
-see [the home page](http://bluemountain.princeton.edu/exist/apps/bmtnsprings/index.html).
-
-For more documentation about Blue Mountain, visit [Blue Mountain](http://bluemountain.princeton.edu)
-or its GitHub [GitHub pages](https://github.com/pulibrary/BlueMountain).
-
 In 2015-2016, Blue Mountain Springs was sponsored by 
 the [Center for Digital Humanities at Princeton](http://digitalhumanities.princeton.edu/).
 
+## Links to Other Resources and Documentation
+ * The main documentation for Blue Mountain Springs can be found in the doc/ directory of this repository.
+ * [Blue Mountain](http://bluemountain.princeton.edu)
+ * [Official Blue Mountain Springs site](http://bluemountain.princeton.edu/exist/apps/bmtnsprings/index.html)
+ * [Blue Mountain Springs at Princeton CDH](https://digitalhumanities.princeton.edu/projects/BlueMountainSprings/)
+ * [Blue Mountain metadata repository](https://github.com/pulibrary/BlueMountain)
+ * [Blue Mountain TEI transcriptions repository](https://github.com/Princeton-CDH/bluemountain-transcriptions)
+ * [RESTXQ Specification](http://exquery.github.io/exquery/exquery-restxq-specification/restxq-1.0-specification.html)
+
 ## Code Organization
-This version of Blue Mountain Springs is deployed as an eXist-db application. 
+This version of Blue Mountain Springs is deployed as an eXist-db application.
 See the [eXist-db documentation](http://exist-db.org/exist/apps/doc/development-starter.xml) 
 for a full description of the directory structure.
 
@@ -27,7 +30,8 @@ for a full description of the directory structure.
 ## To Install
 Follow the directions in installing.html.
 
-For this release, you will also have to import the data into your eXist database. There are two data sources: METS/ALTO data and TEI transcription data.
+For this release, you will also have to import the data into your eXist database. 
+There are two data sources: METS/ALTO data and TEI transcription data.
 
 ### Install Blue Mountain METS/ALTO/MODS into eXist-db ###
 
