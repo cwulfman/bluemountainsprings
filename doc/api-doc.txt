@@ -1,0 +1,530 @@
+		      ___________________________
+
+		       BLUE MOUNTAIN SPRINGS API
+
+			    Clifford Wulfman
+		      ___________________________
+
+
+			    <2016-12-07 Wed>
+
+
+Table of Contents
+_________________
+
+1 Model of Resources
+2 Summary of RESTful URIs (Routes)
+3 Springs APIs, by Resource
+.. 3.1 Magazines
+..... 3.1.1 springs/magazines
+........ 3.1.1.1 text/csv
+........ 3.1.1.2 application/json
+..... 3.1.2 springs/magazines/{bmtnid}
+........ 3.1.2.1 application/json
+.. 3.2 Issues
+..... 3.2.1 springs/issues/{issueid}
+........ 3.2.1.1 application/json
+........ 3.2.1.2 application/tei+xml
+........ 3.2.1.3 text/plain
+........ 3.2.1.4 application/rdf+xml
+..... 3.2.2 springs/issues/{magazineid}
+........ 3.2.2.1 application/json
+........ 3.2.2.2 application/tei+xml
+........ 3.2.2.3 text/plain
+.. 3.3 Constituents
+..... 3.3.1 springs/constituents/{issueid}
+..... 3.3.2 springs/constituents/{magid}
+.. 3.4 Constituent
+..... 3.4.1 springs/constituent/{issueid}/{constid}
+.. 3.5 Contributors
+..... 3.5.1 springs/contributors/{bmtnid}
+........ 3.5.1.1 text/csv
+........ 3.5.1.2 application/json
+.. 3.6 Contributions
+..... 3.6.1 springs/contributions?byline={byline}
+........ 3.6.1.1 application/json
+........ 3.6.1.2 application/tei+xml
+4 IIIF API
+.. 4.1 iiif/collection/top
+.. 4.2 iiif/collection/{magid}
+.. 4.3 iiif/manifest/{issueid}
+
+
+
+
+
+1 Model of Resources
+====================
+
+  [file:model.png]
+
+
+2 Summary of RESTful URIs (Routes)
+==================================
+
+  Each of the objects in the abstract data model maps to one or more
+  RESTful URIs (routes). These are summarized below; each is described
+  in greater detail in the following sections.
+
+  Magazine: 
+            - springs/magazines
+            - springs/magazines/{magazineID}
+
+  Issue: 
+         - springs/issues/{magazineID}
+         - springs/issues/{issueID}
+
+  Constituent: 
+               - springs/constituents/{magazineID}
+               - springs/constituents/{issueID}
+               - springs/constituent/{issueID}/{constituentID}
+
+
+  Contributor: 
+               - springs/contributors/{magazineID}
+               - springs/contributors/{issueID}
+
+  Contribution: 
+                - springs/contributions?byline={string}
+
+
+3 Springs APIs, by Resource
+===========================
+
+3.1 Magazines
+~~~~~~~~~~~~~
+
+  The /magazines/ API delivers a representation of the magazines in Blue
+  Mountain.
+
+
+3.1.1 springs/magazines
+-----------------------
+
+  When no Blue Mountain Identifier is given, the service returns a
+  representation of all the magazines in Blue Mountain.
+
+  Available Content Types:
+  - text/csv
+  - application/json
+
+
+3.1.1.1 text/csv
+
+  A CSV stream representing the magazines in Blue Mountain. The CSV
+  fields are the following:
+
+   Field            Type                                           
+  -----------------------------------------------------------------
+   bmtnid           string                                         
+   primaryTitle     string                                         
+   primaryLanguage  a delimited string of ISO 632-2 language codes 
+   startDate        w3cdtf-formatted string                        
+   endDate          w3cdtf-formatted string                        
+   URI              URI to magazine /bmtnid/                       
+
+  Example:
+  ,----
+  | curl -H'Accept: text/csv' http://bluemountain.princeton.edu/exist/restxq/springs/magazines
+  `----
+
+
+3.1.1.2 application/json
+
+  A list of JSON objects representing the list of magazines in Blue
+  Mountain. Each object has the following properties:
+   Property         Type                                           
+  -----------------------------------------------------------------
+   bmtnid           string                                         
+   primaryTitle     string                                         
+   primaryLanguage  a delimited string of ISO 632-2 language codes 
+   startDate        w3cdtf-formatted string                        
+   endDate          w3cdtf-formatted string                        
+   URI              URI to magazine /bmtnid/                       
+
+  Example:
+  ,----
+  | curl -H'Accept: application/json' http://bluemountain.princeton.edu/exist/restxq/springs/magazines
+  `----
+
+
+3.1.2 springs/magazines/{bmtnid}
+--------------------------------
+
+   If a Blue Mountain magazine identifier is given, the service returns
+  a representation of the corresponding magazine. The representation
+  includes a set of objects representing each of the issues and, for
+  each issue, a list of links to each constituent it contains.
+
+
+3.1.2.1 application/json
+
+  A JSON object representing the magazine.
+   Property         Type                 
+  ---------------------------------------
+   bmtnid           string               
+   primaryTitle     string               
+   primaryLanguage  { "ident" : /lang/}* 
+   startDate        w3cdtf               
+   endDate          w3cdtf               
+   url              URI                  
+   issue            issue*               
+
+  Example:
+  ,----
+  | curl -H'Accept: application/json' http://bluemountain.princeton.edu/exist/restxq/springs/magazines/bmtnaap
+  `----
+
+
+3.2 Issues
+~~~~~~~~~~
+
+  Returns representations of magazine issues. The service behaves
+  differently depending on the kind of resource that is requested.
+
+
+3.2.1 springs/issues/{issueid}
+------------------------------
+
+  If the resource is an issue, the service returns a representation of
+  the issue.
+
+
+3.2.1.1 application/json
+
+  Returns a JSON object with the following properties:
+   Property       Type                                                                                                  
+  ----------------------------------------------------------------------------------------------------------------------
+   bmtnid         xs:string                                                                                             
+   title          xs:string                                                                                             
+   volume         xs:string                                                                                             
+   number         xs:string                                                                                             
+   pubDate        w3cdtf                                                                                                
+   pubPlace       xs:string                                                                                             
+   editors        list of editor objects                                                                                
+   contributors   list of contributor objects                                                                           
+   contributions  lists of Illustration, TextContent, SponsoredAdvertisement, and MusicalScore objects where applicable 
+
+  Example:
+  ,----
+  | curl -H'Accept:application/json' http://bluemountain.princeton.edu/exist/restxq/springs/issues/bmtnaap_1921-11_01
+  `----
+
+
+3.2.1.2 application/tei+xml
+
+  An XML document conforming with the TEI schema.
+
+  For large issues and large magazine runs, this service will return
+  very large data sets in Blue Mountain 1.0. A future version will use
+  status 413 to indicate an excessively large response and compress the
+  response before transmission or implement status 207 to coordinate
+  partial file tranfers.
+
+  Example:
+  ,----
+  | curl -H'Accept:application/tei+xml' http://bluemountain.princeton.edu/exist/restxq/springs/issues/bmtnaap_1921-11_01
+  `----
+
+
+3.2.1.3 text/plain
+
+  A bag of words comprising all the words in the issue.
+
+  For large issues and large magazine runs, this service will return
+  very large data sets in Blue Mountain 1.0. A future version will use
+  status 413 to indicate an excessively large response and compress the
+  response before transmission or implement status 207 to coordinate
+  partial file tranfers.
+
+  Example:
+  ,----
+  | curl -H'Accept:text/plain' http://bluemountain.princeton.edu/exist/restxq/springs/issues/bmtnaap_1921-11_01
+  `----
+
+
+3.2.1.4 application/rdf+xml
+
+  In Blue Mountain version 1.0, this service is aimed primarily at the
+  MODNETS aggregator, and it provides an RDF representation that
+  complies with its requirements: COLLEX-flavored RDF.
+
+  This format only supports issues; not magazines.
+
+  Example:
+  ,----
+  | curl -H'Accept:application/rdf+xml' http://bluemountain.princeton.edu/exist/restxq/springs/issues/bmtnaap_1921-11_01
+  `----
+
+
+3.2.2 springs/issues/{magazineid}
+---------------------------------
+
+  If the requested resource is a magazine, the service returns
+   representations of all the issues of that magazine.
+
+
+3.2.2.1 application/json
+
+  A JSON object with the following properties:
+  bmtnid : xs:string
+  primaryTitle : xs:string
+  primaryLanguage: xs:string
+  startDate : w3cdtf
+  endDate : w3cdtf
+  URI : xs:anyURI
+  issues : a list of issue objects:
+           id : xs:string
+           date: w3cdtf
+           URI : xs:anyURI
+
+  Example:
+  ,----
+  | curl -H'Accept:application/json' http://bluemountain.princeton.edu/exist/restxq/springs/issues/bmtnaap
+  `----
+
+
+3.2.2.2 application/tei+xml
+
+  A teiCorpus document representing the full run of the magazine. This
+  can be very large.
+
+  Example:
+  ,----
+  | curl -H'Accept:application/tei+xml' http://bluemountain.princeton.edu/exist/restxq/springs/issues/bmtnaap
+  `----
+
+
+3.2.2.3 text/plain
+
+  A bag of words containing all words in the magazine run.
+
+  Example:
+  ,----
+  | curl -H'Accept:text/plain' http://bluemountain.princeton.edu/exist/restxq/springs/issues/bmtnaap
+  `----
+
+
+3.3 Constituents
+~~~~~~~~~~~~~~~~
+
+  The addressable portions of the magazine issues -- articles,
+  illustrations, advertisements -- are the issue's constituents. They
+  are represented in two ways:
+  1) descriptive metadata about the constituent is encoded in the
+     teiHeader as a relatedItem with an xml id attribute;
+
+  2) the full text of the constituent (if it is a textual constituent)
+     is encoded in a div element linked to the metadata element with a
+     corresp attribute.
+
+  The constituents service returns representations of the metadata or
+  the full text, depending on the content type requested.
+
+  The only available response type for the /constituents/ service is
+  JSON.
+
+
+3.3.1 springs/constituents/{issueid}
+------------------------------------
+
+  A JSON object representing the id, date, and URI of the issue, plus a
+  list of JSON objects representing the constituents of the issue.
+
+  bmtnid : xs:string
+  date : w3cdtf
+  URI : xs:anyURI
+  constituent+: 
+                issueid : xs:string
+                constituentid: xs:string
+                               URI : xs:anyURI
+                               title : xs:string
+                               contrbutor*: 
+                                            byline : xs:string
+                                            contributorid: xs:string
+
+  Example:
+  ,----
+  | curl -H'Accept:application/json' http://bluemountain.princeton.edu/exist/restxq/springs/constituents/bmtnaap_1921-11_01
+  `----
+
+
+3.3.2 springs/constituents/{magid}
+----------------------------------
+
+  A JSON object with the following properties:
+
+  bmtnid : xs:string
+  date : w3cdtf
+  URI : xs:anyURI
+  constituent+: 
+                URI : xs:anyURI
+
+  Example:
+  ,----
+  | curl -H'Accept:application/json' http://bluemountain.princeton.edu/exist/restxq/springs/constituents/bmtnaap
+  `----
+
+
+3.4 Constituent
+~~~~~~~~~~~~~~~
+
+  The /Constituent/ service delivers a representaton of an individual
+  constituent in a Blue Mountain magazine issue. In Blue Mountain
+  Springs 1.0, this is a representation of the constituent's /contents/.
+
+  In future versions of Blue Mountain Springs, a JSON request will
+  return metadata about the constituent; for now, to get the metadata
+  for a constituent, extract the JSON object from the representation of
+  the issue.
+
+
+3.4.1 springs/constituent/{issueid}/{constid}
+---------------------------------------------
+
+  text/plain : a plain-text blob.
+               ,----
+               | curl -H'Accept:text/plain' http://bluemountain.princeton.edu/exist/restxq/springs/constituent/bmtnaap_1921-11_01/c003
+               `----
+  application/tei+xml : a TEI-encoded fragment.
+                        ,----
+                        | curl -H'Accept:application/tei+xml' http://bluemountain.princeton.edu/exist/restxq/springs/constituent/bmtnaap_1921-11_01/c003
+                        `----
+
+
+3.5 Contributors
+~~~~~~~~~~~~~~~~
+
+  The /contributors/ service returns representations of the contributors
+  to a magazine or an issue in Blue Mountain.
+
+
+3.5.1 springs/contributors/{bmtnid}
+-----------------------------------
+
+  If /bmtnid/ is that of an issue, returns a representation of all the
+  contributors to that issue.  If /bmtnid/ is that of a magazine,
+  returns a representation of all contributors to the magazine in all
+  issues.
+
+
+3.5.1.1 text/csv
+
+  bmtnid : xs:string
+  label : xs:string
+  contributorid: xs:string
+  byline : xs:string
+  constituentid: xs:string
+  title : xs:string
+
+  Example:
+  ,----
+  | curl -H'Accept:text/csv' http://bluemountain.princeton.edu/exist/restxq/springs/contributors/bmtnaap_1921-11_01
+  `----
+
+
+3.5.1.2 application/json
+
+  bmtnid : xs:string
+  label : xs:string
+  contributorid: xs:string
+  byline : xs:string
+  constituentid: xs:string
+  title : xs:string
+
+  Example:
+  ,----
+  | curl -H'Accept:application/json' http://bluemountain.princeton.edu/exist/restxq/springs/contributors/bmtnaap_1921-11_01
+  `----
+
+
+3.6 Contributions
+~~~~~~~~~~~~~~~~~
+
+  Get representation of contributions to a magazine having a particular
+  byline. If the request is for JSON, returns a representation of the
+  metadata for all the contributions; if the request is for TEI, returns
+  a TEI Corpus containing the full text of all the contributions.
+
+
+3.6.1 springs/contributions?byline={byline}
+-------------------------------------------
+
+3.6.1.1 application/json
+
+  If the request is for JSON, returns a representation of the metadata
+  for all the contributions.
+
+  title : xs:string
+  byline : xs:string
+  language+ : xs:string
+  issue : xs:anyURI
+  consttuentid: xs:string
+  URI : xs:anyURI
+
+  Example:
+  ,----
+  | curl -H'Accept:application/json' http://bluemountain.princeton.edu/exist/restxq/springs/contributions?byline=Tzara
+  `----
+
+
+3.6.1.2 application/tei+xml
+
+  A teiCorpus document containing a set of tei:TEI elements representing
+  each contribution.
+
+  Example:
+  ,----
+  | curl -H'Accept:application/tei+xml' http://bluemountain.princeton.edu/exist/restxq/springs/contributions?byline=Tzara
+  `----
+
+
+4 IIIF API
+==========
+
+  The Blue Mountain Springs service delivers text and metadata
+  representations of objects in Blue Mountain. The IIIF service
+  complements the Springs service; it delivers visual representations of
+  Blue Mountain's resources by implementing the IIIF Presentation API.
+
+  In Blue Mountain Springs 1.0, the IIIF implementation supports the two
+  major IIIF resources, Collections and Manifests. These two resources
+  are sufficient to enable the display of Blue Mountain's magazines in
+  IIIF-compliant viewing software. It has been tested with Mirador and
+  the UniversalViewer.
+
+  IIIF collections and manifests are represented as JSON objects.
+
+
+4.1 iiif/collection/top
+~~~~~~~~~~~~~~~~~~~~~~~
+
+  A IIIF collection object representing all the resources in Blue
+  Mountain.
+
+  Example:
+  ,----
+  | curl http://bluemountain.princeton.edu/exist/restxq/iiif/collection/top
+  `----
+
+
+4.2 iiif/collection/{magid}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  A IIIF collection object representing a magazine in Blue Mountain.
+
+  Example:
+  ,----
+  | curl http://bluemountain.princeton.edu/exist/restxq/iiif/collection/bmtnaap
+  `----
+
+
+4.3 iiif/manifest/{issueid}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  A IIIF manifest object representing a particular issue.
+
+  Example:
+  ,----
+  | curl http://bluemountain.princeton.edu/exist/restxq/iiif/manifest/bmtnaap_1921-11_01
+  `----
