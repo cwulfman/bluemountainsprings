@@ -1,0 +1,65 @@
+* Model
+#+begin_src plantuml :file tryout1.png
+  Alice -> Bob: synchronous call
+  Alice ->> Bob: asynchronous call
+#+end_src
+
+#+results:
+[[file:tryout1.png]]
+
+#+begin_src plantuml :file model.png
+  Class Magazine {
+	bmtnid : string
+	uri : anyURI
+	primaryTitle : string
+	primaryLanguage : string
+	startDate : w3cdtf
+	endDate : w3cdtf
+  }
+
+  Class Issue {
+	bmtnid : string
+	uri : anyURI
+	title  : string
+	volume : string
+	number : string
+	pubDate : w3cdtf
+	pubPlace : string
+  }
+
+  Class Constituent {
+	bmtnid : string
+	uri : anyURI
+	title : string
+	language : string
+	contributor : 
+	content : text
+  }
+
+  Class Contributor {
+	id : string
+	byline : string
+  }
+
+  BlueMountain o-- Magazine
+  Magazine o-- Issue
+  Issue o-- Constituent
+  Constituent <|-- Contribution
+  Contribution *-- Contributor : < contributes
+#+end_src
+
+#+results:
+
+
+* Resources
+  - api
+  - magazines
+  - magazines/{magazineID}
+  - issues/{magazineID}
+  - issues/{issueID}
+  - constituents/{magazineID}
+  - constituents/{issueID}
+  - constituent/{issueID}/{constituentID}
+  - contributors/{magazineID}
+  - contributors/{issueID}
+  - contributions?byline={string}
