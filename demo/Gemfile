@@ -1,0 +1,15 @@
+source "https://rubygems.org"
+
+gem 'faraday'
+gem 'nokogiri'
+gem 'json'
+
+group :test do
+  gem 'rake'
+  gem 'rspec'
+end
+
+group :development do
+  gem 'guard'
+  gem 'guard-rspec', require: false
+end
