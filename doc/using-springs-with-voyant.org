@@ -1,0 +1,52 @@
+* Introduction
+  [[http://voyant-tools.org/][Voyant-tools]] is a popular web resource for exploring texts with a
+  number of common techniques: word clouds, etc.
+
+** Using Voyant to Examine Multiple Issues
+  One of the best ways to use Voyant with Blue Mountain's texts is to
+  load them directly into the tool from the repository of issues.
+
+  1) Check out the Blue Mountain transcriptions. Go to [[https://github.com/Princeton-CDH/bluemountain-transcriptions][the
+     transcription repository]] and download a copy to your computer,
+     either by clicking on the =Download= button or by cloning it
+     using git (see [[https://help.github.com/articles/cloning-a-repository/][GitHub's helpful instructions]] for cloning
+     repositories).
+  2) Select the issues you'd like to study by browsing the sub-folders
+     in the =periodicals= folder and moving or copying them into a
+     separate folder.
+  3) Compress that folder into a zip file so it loads into Voyant more
+     quickly. (On the Macintosh, right-click on the folder and select
+     =Compress=; Windows users should use the Zip program of their
+     choice.)
+  4) Go to [[http://voyant-tools.org/][Voyant Tools]].
+  5) In order for Voyant to recognize the structure of your documents,
+     you must provide XPath expressions to define content, titles,
+     bylines, and so on. Voyant's instructions on  [[http://voyant-tools.org/docs/#!/guide/corpuscreator-section-xml][Creating a Corpus]]
+     provide more information.
+     1) Hover your mouse pointer to the left of the question mark on
+        the opening page and click on the =Options= icon.
+     2) Click on the downward-pointing chevron to the left of the word
+        =XML= to reveal a dialog box that invites you to "Define XPath
+        Expressions for any of the following" and copy-paste the
+        following values:
+	1) Content :: //*[local-name()='div' and @*[local-name()='type' and .='Copy']]
+	2) Title :: //*[local-name()='div' and @*[local-name()='type' and .='Head']]
+	3) Author :: //*[local-name()='div' and @*[local-name()='type' and .='Byline']]
+	4) Document :: //*[local-name()='div' and @*[local-name()='type' and .='TextContent']]
+     3) Click on the =OK= button.
+  6) Click on the =Upload= button and select your zip file.
+
+
+** Using Blue Mountain Springs to Select a Set of Texts
+   You can use Blue Mountain Springs to select a set of texts to study
+   with Voyant. If you wanted to study the writings of Tristan Tzara,
+   for example, you would do the following:
+   1) Use the spring to extract the corpus and write it to your local
+      computer.
+      #+BEGIN_SRC sh
+        curl -H'Accept:application/tei+xml' http://bluemountain.princeton.edu/exist/restxq/springs/contributions?byline=Tzara > ~/Desktop/tzara.tei.xml
+      #+END_SRC
+   2) Go to [[http://voyant-tools.org/][Voyant Tools]].
+   3) Configure the XPath expressions as above.
+   4) Click on the =Upload= button, navigate to your Desktop, and
+      select =tzara.tei.xml=.

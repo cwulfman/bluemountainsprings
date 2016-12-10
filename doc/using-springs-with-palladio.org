@@ -1,0 +1,47 @@
+* Introduction
+  There are a number of data-visualization resources on the web into which
+  you can pour data from Blue Mountain Springs. Two of the most
+  popular are [[http://hdlab.stanford.edu/palladio/][Palladio]] and [[http://raw.densitydesign.org/][Raw]]. Both take tables of records as input and
+  offer a variety of tools for visualizing relationships among the records.
+
+* Get Your Data Set
+  Use Blue Mountain Springs to generate a dataset. You might, for
+  example, extract the contributors of several magzines and join the
+  listings into a single file, like this:
+  #+BEGIN_SRC 
+  curl http://bluemountain.princeton.edu/exist/restxq/springs/contributors/bmtnaad > contributors.csv
+  curl http://bluemountain.princeton.edu/exist/restxq/springs/contributors/bmtnaae >> contributors.csv
+  curl http://bluemountain.princeton.edu/exist/restxq/springs/contributors/bmtnaaj >> contributors.csv
+  #+END_SRC
+
+  (Be sure to edit the file to remove the extra header rows between magazines.)
+
+* Clean Your Data
+  Blue Mountain's data is pretty clean, but you might find it helpful
+  to do additional cleanup with [[http://openrefine.org][Open Refine]].
+
+* Load into Palladio
+  1) Point your browser to [[http://hdlab.stanford.edu/palladio/][Palladio]]'s home page. Click on the =Start=
+     button.
+  2) Drag your file into the input box and click on =Load=.
+  3) Confirm the various special characters in the data fields when asked.
+  4) Play with the graphing tools:
+     1) In Settings, make the Source be =contributorid= and the Target =magazine=
+     2) Create some facets by choosing as dimensions =byline=,
+        =contributor= and =magazine=. See what happens when you
+        restrict the graph by activing and de-activating various
+        facets.
+
+* Load into Raw
+  You can load the same data source into the tool called  [[http://raw.densitydesign.org/][Raw]].. Raw
+  gives you access to some sophisticated data-anaysis packages, the
+  use of which is beyond the scope of this article.
+
+  Prepare your data as before. You may find it useful to import your
+  CSV file first into a spreadsheet program like Google Sheets or
+  Microsoft Excel in order to do come clean-up, and then copy-paste
+  the spreadsheet data into the input window. Experiment with the
+  various visualizations.
+
+
+
