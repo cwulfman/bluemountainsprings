@@ -18,7 +18,9 @@
 
 * Clean Your Data
   Blue Mountain's data is pretty clean, but you might find it helpful
-  to do additional cleanup with [[http://openrefine.org][Open Refine]].
+  to do additional cleanup with [[http://openrefine.org][Open Refine]]. Open Refine lets you fix
+  misspellings, remove stray punctuation and extra whitespace, and
+  make other refinements to make your data easier for Palladio to digest.
 
 * Load into Palladio
   1) Point your browser to [[http://hdlab.stanford.edu/palladio/][Palladio]]'s home page. Click on the =Start=
@@ -33,7 +35,7 @@
         facets.
 
 * Load into Raw
-  You can load the same data source into the tool called  [[http://raw.densitydesign.org/][Raw]].. Raw
+  You can load the same data source into the tool called  [[http://raw.densitydesign.org/][Raw]]. Raw
   gives you access to some sophisticated data-anaysis packages, the
   use of which is beyond the scope of this article.
 
