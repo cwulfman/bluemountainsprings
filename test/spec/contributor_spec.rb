@@ -13,7 +13,7 @@ RSpec.describe 'contributors' do
       request.headers['Accept'] = 'text/csv'
     end
     expect(response.body).not_to be_empty()
-    expect(CSV.parse(response.body)[1][2]).to eq('http://viaf.org/viaf/19762459')
+    expect(CSV.parse(response.body)[1][4]).to eq('http://viaf.org/viaf/19762459')
   end
 
   it "Returns a list of magazine contributors as CSV" do
