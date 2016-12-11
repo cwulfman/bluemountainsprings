@@ -13,8 +13,8 @@ declare namespace expath="http://expath.org/ns/pkg";
 (:~
  : User-modifiable configuration variables.
  :)
-declare variable $config:springs-root     as xs:string { "http://localhost:8080/exist/restxq/springs" };
-declare variable $config:iiif-root        as xs:string { "http://localhost:8080/exist/restxq/iiif" };
+declare variable $config:springs-root     as xs:string { "http://bluemountain.princeton.edu/exist/restxq/springs" };
+declare variable $config:iiif-root        as xs:string { "http://bluemountain.princeton.edu/exist/restxq/iiif" };
 declare variable $config:data-root        as xs:string { "/db/bmtn-data" };
 declare variable $config:metadata         as xs:string { $config:data-root || "/metadata" };
 declare variable $config:transcriptions   as xs:string { $config:data-root || "/transcriptions" };
