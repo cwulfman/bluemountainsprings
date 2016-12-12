@@ -38,6 +38,19 @@ declare variable $app:magazineClass as xs:string := "300215389";
  :)
 declare variable $app:lf as xs:string := codepoints-to-string(10);
 
+(:~
+ : Is a given string a valid Blue Mountain ID?
+ : @param $string
+ : @return boolean
+ :)
+ declare function app:bmtnidp($inputstring as xs:string)
+ as xs:boolean
+ {
+    if (collection($config:transcriptions)//tei:idno[@type='bmtnid' and .= $inputstring])
+        then true()
+        else false()
+ };
+
 
 (:~
  : The Blue Mountain Object identified by an ID.
@@ -53,7 +66,7 @@ declare variable $app:lf as xs:string := codepoints-to-string(10);
  : @return the TEI document for the object
  :)
 declare function app:bmtn-object($bmtnid as xs:string)
-as element()
+as element()?
 {
     collection($config:transcriptions)//tei:idno[@type='bmtnid' and . = $bmtnid]/ancestor::tei:TEI
 };
@@ -147,14 +160,16 @@ as element()
  : @param $title a tei:title element
  : @return a string
  :)
-declare function app:formatted-title($title as element())
+declare function app:formatted-title($title as element()?)
 as xs:string
 {
+    if ($title) then  
     let $nonSort := $title/tei:seg[@type='nonSort']
     let $main := $title/tei:seg[@type='main']
     let $sub  := $title/tei:seg[@type='sub']
     let $titleString := string-join(($nonSort,$main), ' ')
     return if ($sub) then $titleString || ': ' || $sub else $titleString
+    else "[Untitled]"
 };
 
 (:~
@@ -185,7 +200,7 @@ as xs:string
  : @return a tei:div element
  :)
 declare function app:constituent($objid as xs:string, $constid as xs:string)
-as element()
+as element()?
 {
     app:bmtn-object($objid)//tei:div[@corresp = $constid]
 };
@@ -255,10 +270,10 @@ as element()
  : @return a w3cdtf-formatted date string.
  :)
 declare function app:issue-date($issueobj as element())
-as xs:string
+as xs:date
 {
     let $date := app:object-date($issueobj)
-    return if ($date/@from) then $date/@from else $date/@when    
+    return if ($date/@from) then app:w3cdtf-to-xsdate($date/@from) else app:w3cdtf-to-xsdate($date/@when)    
 };
 
 
@@ -276,10 +291,10 @@ as xs:string
  : @return a w3cdtf-formatted date string.
  :)
 declare function app:magazine-date-start($magazine as element())
-as xs:string
+as xs:date
 {
     let $date := app:object-date($magazine)
-    return if ($date/@from) then $date/@from else $date/@when
+    return if ($date/@from) then app:w3cdtf-to-xsdate($date/@from) else app:w3cdtf-to-xsdate($date/@when)
 };
 
 
@@ -291,10 +306,10 @@ as xs:string
  : @return a w3cdtf-formatted date string.
  :)
 declare function app:magazine-date-end($magazine as element())
-as xs:string
+as xs:date
 {
     let $date := app:object-date($magazine)
-    return if ($date/@to) then $date/@to else $date/@when
+    return if ($date/@to) then app:w3cdtf-to-xsdate($date/@to) else app:w3cdtf-to-xsdate($date/@when)
 };
 
 
@@ -336,9 +351,9 @@ as element()+
  : @param $include-issues as boolean flag; if true include a representation of all issues
  : @return a magazine element
  :)
-declare function app:magazine-struct($bmtnobj as element(), $include-issues as xs:boolean)
-as element()
-{
+declare function app:magazine-struct($bmtnobj as element()?, $include-issues as xs:boolean)
+as element()?
+{   if (empty($bmtnobj)) then () else
     let $bmtnid := app:bmtnid-of($bmtnobj)
     let $primaryTitle := app:object-title($bmtnobj)
     let $primaryLanguage := $bmtnobj/tei:teiHeader/tei:profileDesc/tei:langUsage/tei:language[1]/@ident
@@ -350,7 +365,8 @@ as element()
               for $issue in app:issues-of-magazine($bmtnid)
               return
                 app:issue-struct($issue, false())
-        else ()
+        else
+        ()
     return
         <magazine>
             <bmtnid>{ $bmtnid }</bmtnid>
@@ -359,7 +375,7 @@ as element()
             <startDate>{ $startDate }</startDate>
             <endDate>{ $endDate }</endDate>
             <uri>{ $uri }</uri>
-            <issues>{ for $issue in $issues return $issue }</issues>
+            <issues>{  if ($issues) then $issues else $config:springs-root || '/issues/' || $bmtnid}</issues>
         </magazine>
 };
 
@@ -375,6 +391,30 @@ as element()
  : @return an issue element
  :)
 declare function app:issue-struct($bmtnobj as element(), $include-constituents as xs:boolean)
+as element()
+{
+    let $bmtnid := app:bmtnid-of($bmtnobj)
+    return
+     <issue>
+        <id>  { $bmtnid }</id>
+        <date>{ app:issue-date($bmtnobj) }</date>
+        <url> { $config:springs-root || '/issues/' || $bmtnid }</url>
+        <constituents>
+        {
+            if ($include-constituents) then
+                for $constituent in $bmtnobj//tei:relatedItem[@type='constituent']
+                return
+                <constituent>{ app:constituent-struct($constituent, $bmtnid) }</constituent>
+            else
+            <uri>{ $config:springs-root || '/constituents/' || $bmtnid }</uri>
+        }
+        </constituents>
+       
+     </issue>
+};
+
+
+declare function app:issue-struct-old($bmtnobj as element(), $include-constituents as xs:boolean)
 as element()
 {
     let $bmtnid := app:bmtnid-of($bmtnobj)
@@ -445,16 +485,24 @@ as element()
 
 (:::: Utilities for Contributors ::::)
 
+declare function app:magazine-of($issue as element())
+as xs:string
+{
+    xs:string($issue//tei:relatedItem[@type='host']/@target)
+};
 
 declare function app:contributor-data($issue as element())
 as xs:string*
 {
     let $issueid := app:bmtnid-of($issue)
-    let $issuelabel := app:formatted-title($issue)
+    let $issuelabel := app:object-title($issue)
+    let $issueDate := app:issue-date($issue)
+    let $magazine  := app:magazine-of($issue)
     let $contributions := $issue//tei:relatedItem[@type='constituent']
     for $contribution in $contributions
         let $constituentid := xs:string($contribution/@xml:id)
         let $title := app:constituent-title($contribution)
+        let $title := replace($title, '"', '""') 
         let $qtitle := concat("&quot;", $title,"&quot;")
         let $respStmts := $contribution//tei:respStmt
         for $stmt in $respStmts
@@ -462,14 +510,14 @@ as xs:string*
             let $byline := concat("&quot;", $byline,"&quot;")
             let $contributorid := if ($stmt/tei:persName/@ref) then xs:string($stmt/tei:persName/@ref) else " "
             return
-             concat(string-join(($issueid, $issuelabel,$contributorid,$byline,$constituentid,$qtitle), ','), $app:lf)
+             concat(string-join(($issueid,$issuelabel,$issueDate,$magazine,$contributorid,$byline,$constituentid,$qtitle), ','), $app:lf)
 };
 
 
 declare function app:contributors-to($bmtnid as xs:string)
 as xs:string*
 {
-    let $header := concat(string-join(('bmtnid', 'label', 'contributorid', 'byline', 'constituentid', 'title'),','), $app:lf)
+    let $header := concat(string-join(('bmtnid', 'label', 'issueDate', 'magazine', 'contributorid', 'byline', 'constituentid', 'title'),','), $app:lf)
     let $records :=
         if (app:issuep($bmtnid))
             then app:contributor-data(app:bmtn-object($bmtnid))
@@ -478,4 +526,26 @@ as xs:string*
             return app:contributor-data($issue)
     return
          ($header,$records)
+};
+
+
+(:~
+ : Returns a valid xs:date from a w3cdtf-formatted string.
+ : The input string may simply be a year (e.g., '2015'), in which
+ : case the function appends January 1 to it (e.g., 2015-01-01);
+ : if it is a YearMonth, then the function returns default first of 
+ : the month.
+ :
+ : The function works by seeing if it can cast the input string as
+ : an xs:date type.
+ : @param $d a string in w3cdtf format
+ :)
+declare function app:w3cdtf-to-xsdate($d as xs:string) as xs:date
+{
+  let $dstring :=
+  if ($d castable as xs:gYear) then $d || "-01-01"
+  else if ($d castable as xs:gYearMonth) then $d || "-01"
+  else if ($d castable as xs:date) then $d
+  else error($d, "not valid w3cdtf")
+  return xs:date($dstring)
 };

@@ -81,9 +81,11 @@
         <volume>
             <xsl:value-of select="normalize-space(tei:biblScope[@unit='vol'])"/>
         </volume>
-        <number>
-            <xsl:value-of select="normalize-space(tei:biblScope[@unit='issue'])"/>
-        </number>
+        <xsl:for-each select="tei:biblScope[@unit='issue']">
+            <number>
+                <xsl:value-of select="normalize-space(current())"/>
+            </number>
+        </xsl:for-each>
         <pubDate>
             <xsl:value-of select="xs:string(tei:date/@when)"/>
         </pubDate>

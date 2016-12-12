@@ -1,0 +1,114 @@
+* Accessing the API with Ruby
+  Using =curl= to retrieve and save datasets is a great way to use
+  Blue Mountain Springs, but you can also use the API to retrieve data
+  programmatically.
+
+  Most popular programming languages have HTTP client
+  libraries. Python has [[http://docs.python-requests.org/en/master/][Requests]]; in this example we're going to use
+  Ruby and a popular HTTP client gem called [[https://rubygems.org/gems/faraday/versions/0.9.2][Faraday]].
+
+  Let's imagine you want to look at all the English-language issues
+  published in 1923.  One way to retrieve just the issues you want is
+  through the use of filters: from the list of all magazines, winnow
+  out just those whose publication dates fall within 1923 and 1924 and
+  whose primary language is English.
+
+  The program will need a few gems; if you don't know about Ruby gems,
+  refer to [[http://guides.rubygems.org/rubygems-basics/][the Ruby Gems Guide]].
+
+  #+BEGIN_SRC ruby
+    require 'date'
+    require 'faraday'
+    require 'json'
+  #+END_SRC
+
+  Blue Mountain uses the w3cdtf format to represent dates, so
+  precision varies: some dates are fully qualified YYYY-MM-DD, while
+  others indicate only year and month (YYYY-MM) and others only the
+  year (YYYY). Let's write a small utility function to convert Blue
+  Mountain's dates into a format that lets us use Ruby's date class
+  for comparisons.
+
+  #+BEGIN_SRC ruby
+    def bmtnDate(dateString)
+      case
+      when dateString.match(/^\d{4}-\d{2}-\d{2}$/)
+        @date = Date.parse(dateString)
+      when dateString.match(/^\d{4}-\d{2}$/)
+        @date = Date.parse(dateString + "-01")
+      when dateString.match(/^\d{4}$/)
+        @date = Date.parse(dateString + "-01-01")
+      else
+        raise "bad date"
+      end
+    end
+  #+END_SRC
+
+  Specify the filter parameters: the bounding dates and the language.
+
+  #+BEGIN_SRC ruby
+    startDate = bmtnDate('1923')
+    endDate = bmtnDate('1924')
+    language = 'eng'
+  #+END_SRC
+
+  Use the Faraday client library to send a request to Blue Mountain
+  Springs. Faraday has a rich syntax for communicating over HTTP; here
+  we provide a base url for our request and then specify additional
+  properties.
+
+  #+BEGIN_SRC ruby
+    springs = Faraday.new(url: "http://bluemountain.princeton.edu/exist/restxq/springs/")
+    response = springs.get do |request|
+      request.url 'magazines'
+      request.headers['Accept'] = 'application/json'
+    end
+  #+END_SRC
+
+  Parse the response body to extract the array of
+  magazine objects.
+
+  #+BEGIN_SRC ruby
+    magazines = JSON.parse(response.body)['magazine']
+  #+END_SRC
+
+
+  Filter the magazines to include only those whose publication span
+  covers our endpoints and whose primary language is English.
+
+  #+BEGIN_SRC ruby
+    hits = magazines.select do |m|
+      bmtnDate(m['startDate']) <= startDate and
+        bmtnDate(m['endDate']) >= endDate and
+        m['primaryLanguage']['ident'] == language
+    end
+  #+END_SRC
+
+
+  Finally, mMap over the filtered list of magazines to follow the
+  'issues' link in each magazine's representation and select the
+  specific issues that fall within our range.
+
+  #+BEGIN_SRC ruby
+    allIssues = hits.map do |magazine|
+      issueSpring = Faraday.new(url: magazine['issues'])  
+      issues = JSON.parse(issueSpring.get.body)['issues']['issue']
+      issueSet = issues.select do |issue|
+        bmtnDate(issue['date']) >= startDate and
+  	bmtnDate(issue['date']) <= endDate
+      end
+      issueSet
+    end
+  #+END_SRC
+
+
+  You could continue to crawl the data set by iterating over each of
+  the selected issues to extract individual constituents or the full
+  text of the issue. Here we simply output the list of matching
+  issues.
+
+  #+BEGIN_SRC ruby
+  puts allIssues
+  #+END_SRC
+
+  

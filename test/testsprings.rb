@@ -1,31 +1,45 @@
 require 'faraday'
 require 'json'
+require 'csv'
+require 'logger'
 
-springs = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/")
 
-# exercise magazines spring
-puts '+----- /magazines -----+'
+springs_base = "http://localhost:8080/exist/restxq/springs/"
 
-puts '++----- /magazines as JSON -----++'
+log = Logger.new(STDOUT)
+springs = Faraday.new(url: springs_base)
+
+
+# Exercise magazines/ spring
+
+log.info '+ magazines'
+
+log.info '++ magazines/ accepting application/json'
 response = springs.get do |request|
   request.url 'magazines'
   request.headers['Accept'] = 'application/json'
 end
 
+log.info 'Got response'
+
 JSON.parse(response.body)['magazine'].each do |m|
-  puts m['primaryTitle']
+  log.debug  m['primaryTitle']
 end
 
-puts '++----- /magazines as CSV -----++'
+
+
+log.info '++ magazines/ accepting text/csv'
 response = springs.get do |request|
   request.url 'magazines'
   request.headers['Accept'] = 'text/csv'
 end
+log.info 'Got response'
 
-puts response.body
+CSV.parse(response.body) { |row| log.debug row }
 
-# exercise magazines/bmtnid spring
-puts '++----- /magazines/bmtnid as JSON -----++'
+
+
+log.info '++ /magazines/bmtnid as JSON'
 response = springs.get do |request|
   request.url 'magazines'
   request.headers['Accept'] = 'application/json'
@@ -33,7 +47,7 @@ end
 
 JSON.parse(response.body)['magazine'].each do |m|
 
-  puts m['primaryTitle']
+log.info '+++ ' + m['primaryTitle']
   response = springs.get do |request|
     request.url  'magazines/' + m['bmtnid']
     request.headers['Accept'] = 'application/json'    
@@ -41,38 +55,77 @@ JSON.parse(response.body)['magazine'].each do |m|
 
   issues = JSON.parse(response.body)['issues']['issue']
   issues.each do |issue|
-    puts issue
+    log.debug  issue
   end
-  puts '------------------------------------------'
 end
 
 # exercise issues spring
-puts '+----- /issues -----+'
+log.info '+ issues/'
 
-puts '++----- /issues as json -----++'
+log.info '++ issues/ as json'
 
-spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/magazines/bmtnaap")
-
-response = spring.get do |request|
+response = springs.get do |request|
+  request.url 'magazines'
   request.headers['Accept'] = 'application/json'
 end
 
-JSON.parse(response.body)['issues']['issue'].each do |issue|
-  resp = spring.get do |request|
-    request.url issue['url']
+magazines = JSON.parse(response.body)['magazine']
+
+magazines.each do |magazine|
+  log.info 'retrieving ' + magazine['issues']
+  conn = Faraday.new(url: magazine['issues'])
+
+  response = conn.get do |request|
     request.headers['Accept'] = 'application/json'
   end
-  puts resp.body
-  puts '------------------------------------------'
+
+  issues = JSON.parse(response.body)['issues']['issue']
+  if issues.kind_of?(Array)
+    issues.each do |i|
+      log.info i['id']
+      conn = Faraday.new(url: i['url'])
+      issue = conn.get do |request|
+        request.headers['Accept'] = 'application/json'
+      end
+      log.info JSON.parse(issue.body)['bmtnid']
+    end
+  else
+    log.info "singleton"
+  end
 end
 
-puts '++----- /issues as TEI: single issue -----++'
-spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/issues/bmtnaap_1921-11_01")
-response = spring.get do |request|
-  request.headers['Accept'] = 'application/tei+xml'
+
+log.info '++ issues/ as TEI'
+
+response = springs.get do |request|
+  request.url 'magazines'
+  request.headers['Accept'] = 'application/json'
 end
 
-puts response.body
+magazines = JSON.parse(response.body)['magazine']
+
+magazines.each do |magazine|
+  log.info 'retrieving ' + magazine['issues']
+  conn = Faraday.new(url: magazine['issues'])
+
+  response = conn.get do |request|
+    request.headers['Accept'] = 'application/json'
+  end
+
+  issues = JSON.parse(response.body)['issues']['issue']
+  if issues.kind_of?(Array)
+    issues.each do |i|
+      log.info i['id']
+      conn = Faraday.new(url: i['url'])
+      issue = conn.get do |request|
+        request.headers['Accept'] = 'application/tei+xml'
+      end
+      log.info 'got it'
+    end
+  else
+    log.info "singleton"
+  end
+end
 
 
 puts '++----- /issues as TEI: magazine -----++'

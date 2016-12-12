@@ -12,16 +12,16 @@ RSpec.describe 'constituents' do
       request.headers['Accept'] = 'application/json'
     end
     json = JSON.parse(response.body)
-    expect(json['constituent'].count).to eq(57)
+    expect(json['constituents']['constituent'].count).to eq(57)
   end
 
-  it "Returns a list of magazines constituents as JSON" do
+  it "Returns magazines constituents as uris" do
     response = springs.get do |request|
       request.url 'constituents/bmtnaap'
       request.headers['Accept'] = 'application/json'
     end
     json = JSON.parse(response.body)
-    expect(json['issue'][2]['constituent'].count).to eq(39)
+    expect(json['issue'][2]['constituents']['uri']).not_to be_empty()
   end
 
   it "Returns a constituent as plain text" do

@@ -45,15 +45,6 @@ declare namespace tei="http://www.tei-c.org/ns/1.0";
  : @see http://exquery.github.io/exquery/exquery-restxq-specification/restxq-1.0-specification.html#rest-resource-functions
  :)
  
-declare
- %rest:GET
- %rest:path("/springs/api")
-function springs:top()
-{
-    exrest:find-resource-functions(xs:anyURI('/db/apps/bmtnsprings/modules/springs.xqm'))
-};
-
-
 (:~
  : The magazines/ service.
  :
@@ -99,6 +90,7 @@ as item()+
     return 
          (<rest:response>
             <http:response>
+              <http:response status="{ if (empty($response)) then 204 else 200 }"/>
               <http:header name="Content-Type" value="application/json"/>
               <http:header name="Access-Control-Allow-Origin" value="*"/>
             </http:response>
@@ -136,13 +128,15 @@ as item()+
                                  $struct/uri), ','), $app:lf)
     return
         (<rest:response>
-           <http:response>
+           <http:response status="{ if (empty($response)) then 204 else 200 }">
              <http:header name="Content-Type" value="text/csv"/>
              <http:header name="Access-Control-Allow-Origin" value="*"/>
            </http:response>
          </rest:response>,
          $response)
 };
+
+
 
 
 (:~
@@ -166,18 +160,23 @@ declare
 function springs:magazine-as-json($bmtnid as xs:string) 
 as item()+
 {
-    let $response := app:magazine-struct(app:bmtn-object($bmtnid), true())
-    return 
-         (<rest:response>
-            <http:response>
+    if (app:bmtnidp($bmtnid)) then
+        let $response := app:magazine-struct(app:bmtn-object($bmtnid), true())
+        let $status := if (empty($response)) then 204 else 200
+        return 
+         (<rest:response>   
+            <http:response status="{$status}">
               <http:header name="Content-Type" value="application/json"/>
               <http:header name="Access-Control-Allow-Origin" value="*"/>
             </http:response>
           </rest:response>,
          $response)
+     else
+        <rest:response>
+            <http:response status="400"/>
+        </rest:response>
 };  
   
-
 
 
 (:~
@@ -222,6 +221,7 @@ declare
 function springs:issue-as-tei($bmtnid as xs:string)
 as item()+
 {
+   if (app:bmtnidp($bmtnid)) then
     let $response :=
        if (app:issuep($bmtnid)) then
             app:bmtn-object($bmtnid)
@@ -250,6 +250,10 @@ as item()+
             </http:response>
           </rest:response>,
          $response)
+    else
+        <rest:response>
+            <http:response status="400"/>
+        </rest:response>
 };
 
 
@@ -284,6 +288,7 @@ declare
 function springs:issue-as-plaintext($bmtnid as xs:string) 
 as item()+
 {
+   if (app:bmtnidp($bmtnid)) then
     let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
     let $responseBody :=
         if (app:issuep($bmtnid)) then
@@ -299,6 +304,10 @@ as item()+
           </http:response>
          </rest:response>,
          $responseBody)
+   else
+        <rest:response>
+         <http:response status="400"/>
+        </rest:response> 
 };
 
 
@@ -334,6 +343,7 @@ declare
 function springs:issue-as-json($bmtnid as xs:string) 
 as item()+
 {
+  if (app:bmtnidp($bmtnid)) then
     let $xsl := doc($config:app-root || "/resources/xsl/tei2data.xsl")
     let $xslt-parameters := 
       <parameters>
@@ -344,6 +354,7 @@ as item()+
             transform:transform( app:bmtn-object($bmtnid), $xsl, $xslt-parameters )
         else
             app:magazine-struct(app:bmtn-object($bmtnid), true())
+            
     return 
              (<rest:response>
                <http:response>
@@ -352,6 +363,10 @@ as item()+
                </http:response>
               </rest:response>,
               $responseBody)
+   else
+        <rest:response>
+         <http:response status="400"/>
+        </rest:response> 
 };
 
 
@@ -388,6 +403,7 @@ declare
 function springs:issue-as-rdf($bmtnid as xs:string)
 as item()+
 {
+  if (app:bmtnidp($bmtnid)) then
     let $issue := app:bmtn-object($bmtnid)
     let $xsl := doc($config:app-root || "/resources/xsl/bmtn2rdf.xsl")
     let $responseBody := transform:transform($issue, $xsl, ())
@@ -398,7 +414,11 @@ as item()+
                 <http:header name="Access-Control-Allow-Origin" value="*"/>
                </http:response>
               </rest:response>,
-              $responseBody)  
+              $responseBody)
+   else
+        <rest:response>
+         <http:response status="400"/>
+        </rest:response> 
 };
 
 
@@ -444,6 +464,7 @@ declare
 function springs:constituents-as-json($bmtnid as xs:string)
 as item()+
 {
+  if (app:bmtnidp($bmtnid)) then
     let $responseBody :=
       if (app:issuep($bmtnid))
         then app:issue-struct(app:bmtn-object($bmtnid), true())
@@ -460,7 +481,11 @@ as item()+
            <http:header name="Access-Control-Allow-Origin" value="*"/>
           </http:response>
          </rest:response>,
-         $responseBody)  
+         $responseBody)
+   else
+        <rest:response>
+         <http:response status="400"/>
+        </rest:response> 
 };
 
 
@@ -482,18 +507,22 @@ declare
 function springs:constituent-plaintext($issueid as xs:string, $constid as xs:string)
 as item()+
 {
-
+  if (app:bmtnidp($issueid)) then
     let $constituent := app:constituent($issueid, $constid)
     let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
     let $responseBody := transform:transform($constituent, $xsl, ())
     return 
     (<rest:response>
-       <http:response>
+       <http:response status="{ if (empty($responseBody)) then 204 else 200 }">
           <http:header name="Content-Type" value="text/plain"/>
           <http:header name="Access-Control-Allow-Origin" value="*"/>
        </http:response>
       </rest:response>,
       $responseBody)
+   else
+        <rest:response>
+         <http:response status="400"/>
+        </rest:response> 
 };
 
 
@@ -515,13 +544,20 @@ declare
 function springs:constituent-tei($issueid as xs:string, $constid as xs:string)
 as item()+
 {
+  if (app:bmtnidp($issueid)) then 
+    let $response := app:constituent($issueid, $constid)
+    return
     (<rest:response>
-       <http:response>
+       <http:response status="{if (empty($response)) then 204 else 200 }">
           <http:header name="Content-Type" value="application/tei+xml"/>
           <http:header name="Access-Control-Allow-Origin" value="*"/>
        </http:response>
       </rest:response>,
-      app:constituent($issueid, $constid))
+     $response)
+   else
+        <rest:response>
+         <http:response status="400"/>
+        </rest:response>
 };
 
 
@@ -549,6 +585,7 @@ declare
 function springs:contributors-csv($bmtnid as xs:string)
 as item()+
 {
+  if (app:bmtnidp($bmtnid)) then
     (<rest:response>
        <http:response>
           <http:header name="Content-Type" value="text/csv"/>
@@ -556,6 +593,10 @@ as item()+
        </http:response>
       </rest:response>,
       app:contributors-to($bmtnid))
+   else
+        <rest:response>
+         <http:response status="400"/>
+        </rest:response>
 };
 
 
@@ -570,6 +611,7 @@ declare
 function springs:contributors-from-issue($issueid as xs:string)
 as item()+
 {
+  if (app:bmtnidp($issueid)) then
     let $issue := app:bmtn-object($issueid)
     let $bylines := $issue//tei:relatedItem[@type='constituent']//tei:respStmt[tei:resp = 'cre']/tei:persName
     let $issue-label := app:object-title($issue)
@@ -602,7 +644,10 @@ as item()+
        </http:response>
       </rest:response>,
       $responseBody)
-    
+   else
+        <rest:response>
+         <http:response status="400"/>
+        </rest:response>    
 };
 
 
@@ -646,7 +691,7 @@ as item()*
      
      return
     (<rest:response>
-       <http:response>
+       <http:response status="{if (empty($responseBody)) then 204 else 200 }">
           <http:header name="Content-Type" value="application/json"/>
           <http:header name="Access-Control-Allow-Origin" value="*"/>
        </http:response>
@@ -725,7 +770,7 @@ as element()*
      else ()
      return
     (<rest:response>
-       <http:response>
+       <http:response status="{if (empty($responseBody)) then 204 else 200 }">
           <http:header name="Content-Type" value="application/tei+xml"/>
           <http:header name="Access-Control-Allow-Origin" value="*"/>
        </http:response>
@@ -733,3 +778,22 @@ as element()*
       $responseBody)     
 };
 
+declare
+ %rest:GET
+ %output:method("html5")
+ %rest:path("/springs")
+function springs:redirect-to-spec() {
+    (
+    <rest:response>
+        <http:response status="200"/>
+    </rest:response>,
+    <html>
+        <head><title>Blue Mountain Springs</title></head>
+    <body>
+        <h1>Blue Mountain Springs API</h1>
+        <p>See <a href="https://github.com/Princeton-CDH/bluemountainsprings/blob/master/doc/api-doc.org">Specification</a>
+        for more information.</p>
+    </body>
+    </html>
+    )
+};
