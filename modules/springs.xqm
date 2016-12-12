@@ -37,16 +37,37 @@ declare namespace http = "http://expath.org/ns/http-client";
 declare namespace tei="http://www.tei-c.org/ns/1.0";
 
 (:~
- : /springs/api
+ : /springs
  :
  : The top level of the service; it returns an XML
  : document detailing the API.
  :
- : @see http://exquery.github.io/exquery/exquery-restxq-specification/restxq-1.0-specification.html#rest-resource-functions
  :)
  
+declare
+ %rest:GET
+ %output:method("html5")
+ %rest:path("/springs")
+function springs:redirect-to-spec() {
+    (
+    <rest:response>
+        <http:response status="200"/>
+    </rest:response>,
+    <html>
+        <head><title>Blue Mountain Springs</title></head>
+    <body>
+        <h1>Blue Mountain Springs API</h1>
+        <p>See <a href="https://github.com/Princeton-CDH/bluemountainsprings/blob/master/doc/api-doc.org">Specification</a>
+        for more information.</p>
+    </body>
+    </html>
+    )
+};
+
 (:~
  : The magazines/ service.
+ :
+ : Specification Section 3.1.1
  :
  : Blue Mountain contains magazines. The magazines/
  : service returns representations of those magazines.
@@ -66,6 +87,8 @@ declare namespace tei="http://www.tei-c.org/ns/1.0";
 
 (:~
  : magazines/ as JSON
+ :
+ : Specification section 3.1.1.2
  :
  : Queries the database for magazines and generates
  : a magazine-struct for each. It uses eXist's built-in
@@ -101,6 +124,8 @@ as item()+
 
 (:~
  : magazines/ as text/CSV
+ :
+ : Specification Section 3.1.1.1
  :
  : Queries the database for magazines and generates
  : a magazine-struct for each. It assembles a return
@@ -142,6 +167,8 @@ as item()+
 (:~
  : magazines/$bmtnid
  :
+ : Specification Section 3.1.2
+ :
  : When the Blue Mountain ID of a magzine is supplied
  : as a resource to the magazines/ service, it returns a
  : representation of that magazine.
@@ -182,6 +209,8 @@ as item()+
 (:~
  : The issues/ service.
  :
+ : Specification Section 3.2
+ :
  : The issues/ service returns representations of magazine issues.
  : The service behaves differently depending on the kind of
  : resource that is requested:
@@ -195,6 +224,8 @@ as item()+
 
 (:~
  : issues/$bmtnid as TEI
+ :
+ : Specification 3.2.1.2, 3.2.2.2
  :
  : If the requested resource is an issue,
  : return the tei:TEI document in the database.
@@ -260,6 +291,8 @@ as item()+
 (:~
  : issues/$bmtnid as plain text
  :
+ : Specification Section 3.2.1.3, 3.2.2.3
+ :
  : If the requested resource is an issue,
  : the service retrieves the issue tei:TEI 
  : document from the database and converts it
@@ -314,6 +347,8 @@ as item()+
 
 (:~
  : issues/$bmtnid as JSON
+ :
+ : Specification Sections 3.2.1.1, 3.2.2.1
  :
  : If the requested resource is an issue,
  : the service retrieves the issue tei:TEI 
@@ -373,6 +408,8 @@ as item()+
 (:~
  : issues/$bmtnid as RDF
  :
+ : Specification Section 3.2.1.4
+ :
  : In Blue Mountain version 1.0, this
  : service is aimed primarily at the
  : MODNETS aggregator, and it provides
@@ -426,6 +463,8 @@ as item()+
 (:~
  :  constituents/ service
  :
+ : Specification 3.3
+ :
  : The addressable portions of the magazine issues --
  : articles, illustrations, advertisements -- are the
  : issue's constituents. They are represented in two ways:
@@ -446,6 +485,8 @@ as item()+
 
 (:~
  : constituents/$bmtnid as JSON
+ :
+ : Specification 3.3.1, 3.3.2
  :
  : If the specified resource is an issue,
  : the service retrieves the metadata for the
@@ -492,6 +533,8 @@ as item()+
 (:~
  : constituent/$issueid/$constid as plain text
  :
+ : Specification 3.4
+ :
  : Return a plain-text representation of a constituent of
  : an issue by retrieving it from the database and transforming
  : it into plain text with an XSL stylesheet.
@@ -529,6 +572,8 @@ as item()+
 (:~
  : constituent/$issueid/$constid as TEI
  :
+ : Specification 3.4
+ :
  : Return the TEI-encoded representation of a constituent of
  : an issue by retrieving it from the database. Returns a div
  : element not an entire document.
@@ -562,10 +607,16 @@ as item()+
 
 
 
-(::::::::::::::::::: CONTRIBUTORS ::::::::::::::::::::)
+(:~ Contributors/ service
+ :
+ : Specification 3.5
+ :
+ :)
 
 (:~
  : contributors/$bmtnid as CSV
+ :
+ : Specification 3.5.1.1
  :
  : Returns a representation of all the contributors to a
  : Blue Mountain object. If the object is an issue, it
@@ -602,6 +653,9 @@ as item()+
 
 (:~
  : contributors/$bmtnid as JSON
+ :
+ : Specification 3.5.1.2
+ :
  :)
 declare 
  %rest: GET
@@ -655,6 +709,8 @@ as item()+
 (:~
  : contributions?byline=$byline as JSON
  :
+ : Specification 3.6.1.1
+ :
  : Returns metadata about all constituents in the corpus
  : with byline $byline.
  :
@@ -699,7 +755,15 @@ as item()*
       $responseBody)
 };
 
-
+(:~
+ : contributions?byline=$byline as TEI
+ :
+ : Specification 3.6.1.2
+ :
+ : Returns xml-encoded text of all constituents in the corpus
+ : with byline $byline.
+ :
+ :)
 declare
  %rest:GET
  %rest:path("/springs/contributions")
@@ -777,7 +841,6 @@ as element()*
       </rest:response>,
       $responseBody)     
 };
-
 declare
  %rest:GET
  %output:method("html5")
