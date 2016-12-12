@@ -95,13 +95,37 @@ magazines.each do |magazine|
 end
 
 
-puts '++----- /issues as TEI: single issue -----++'
-spring = Faraday.new(url: springs_base + "issues/bmtnaap_1921-11_01")
-response = spring.get do |request|
-  request.headers['Accept'] = 'application/tei+xml'
+log.info '++ issues/ as TEI'
+
+response = springs.get do |request|
+  request.url 'magazines'
+  request.headers['Accept'] = 'application/json'
 end
 
-puts response.body
+magazines = JSON.parse(response.body)['magazine']
+
+magazines.each do |magazine|
+  log.info 'retrieving ' + magazine['issues']
+  conn = Faraday.new(url: magazine['issues'])
+
+  response = conn.get do |request|
+    request.headers['Accept'] = 'application/json'
+  end
+
+  issues = JSON.parse(response.body)['issues']['issue']
+  if issues.kind_of?(Array)
+    issues.each do |i|
+      log.info i['id']
+      conn = Faraday.new(url: i['url'])
+      issue = conn.get do |request|
+        request.headers['Accept'] = 'application/tei+xml'
+      end
+      log.info 'got it'
+    end
+  else
+    log.info "singleton"
+  end
+end
 
 
 puts '++----- /issues as TEI: magazine -----++'
