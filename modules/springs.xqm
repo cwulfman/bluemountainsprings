@@ -64,7 +64,6 @@ function springs:redirect-to-spec() {
     )
 };
 
-
 (:~
  : The magazines/ service.
  :
@@ -841,4 +840,23 @@ as element()*
        </http:response>
       </rest:response>,
       $responseBody)     
+};
+declare
+ %rest:GET
+ %output:method("html5")
+ %rest:path("/springs")
+function springs:redirect-to-spec() {
+    (
+    <rest:response>
+        <http:response status="200"/>
+    </rest:response>,
+    <html>
+        <head><title>Blue Mountain Springs</title></head>
+    <body>
+        <h1>Blue Mountain Springs API</h1>
+        <p>See <a href="https://github.com/Princeton-CDH/bluemountainsprings/blob/master/doc/api-doc.org">Specification</a>
+        for more information.</p>
+    </body>
+    </html>
+    )
 };
