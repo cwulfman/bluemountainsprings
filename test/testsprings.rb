@@ -128,30 +128,72 @@ magazines.each do |magazine|
 end
 
 
-puts '++----- /issues as TEI: magazine -----++'
-spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/issues/bmtnaad")
-response = spring.get do |request|
-  request.headers['Accept'] = 'application/tei+xml'
+log.info '++ issues/ as plain text'
+
+
+response = springs.get do |request|
+  request.url 'magazines'
+  request.headers['Accept'] = 'application/json'
 end
 
-puts response.body
+magazines = JSON.parse(response.body)['magazine']
 
-puts '++----- /issues as plain text -----++'
-spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/issues/bmtnaap_1921-11_01")
-response = spring.get do |request|
-  request.headers['Accept'] = 'text/plain'
+magazines.each do |magazine|
+  log.info 'retrieving ' + magazine['issues']
+  conn = Faraday.new(url: magazine['issues'])
+
+  response = conn.get do |request|
+    request.headers['Accept'] = 'application/json'
+  end
+
+  issues = JSON.parse(response.body)['issues']['issue']
+  if issues.kind_of?(Array)
+    issues.each do |i|
+      log.info i['id']
+      conn = Faraday.new(url: i['url'])
+      issue = conn.get do |request|
+        request.headers['Accept'] = 'text/plain'
+      end
+      log.info 'got it'
+    end
+  else
+    log.info "singleton"
+  end
 end
 
-puts response.body
 
-puts '++----- /issues as Collex-flavored RDF -----++'
-spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/issues/bmtnaap_1921-11_01")
-response = spring.get do |request|
-  request.headers['Accept'] = 'application/rdf+xml'
+log.info '++ issues/ as rdf'
+
+
+response = springs.get do |request|
+  request.url 'magazines'
+  request.headers['Accept'] = 'application/json'
 end
 
-puts response.body
+magazines = JSON.parse(response.body)['magazine']
 
+magazines.each do |magazine|
+  log.info 'retrieving ' + magazine['issues']
+  conn = Faraday.new(url: magazine['issues'])
+
+  response = conn.get do |request|
+    request.headers['Accept'] = 'application/json'
+  end
+
+  issues = JSON.parse(response.body)['issues']['issue']
+  if issues.kind_of?(Array)
+    issues.each do |i|
+      log.info i['id']
+      conn = Faraday.new(url: i['url'])
+      issue = conn.get do |request|
+        request.headers['Accept'] = 'application/rdf+xml'
+      end
+      log.info 'got it'
+    end
+  else
+    log.info "singleton"
+  end
+end
 
 
 
