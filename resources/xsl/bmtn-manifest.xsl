@@ -32,22 +32,25 @@
     </xsl:function>
     <xsl:template match="mods:mods" mode="metadata">
         <map>
-            <string key="title">
+            <string key="label">title</string>
+            <string key="value">
                 <xsl:value-of select="mods:use-title(., 'full')"/>
             </string>
         </map>
         <map>
-            <string key="display-date">
+            <string key="label">display-date</string>
+            <string key="value">
                 <xsl:value-of select="mods:display-date(.)"/>
             </string>
-        </map>
-        <map>
-            <string key="detail">
+        </map><!--<map>
+            <string key="label">detail</string>
+            <string key="value">
                 <xsl:apply-templates select="mods:part/mods:detail"/>
             </string>
-        </map>
+        </map>-->
         <map>
-            <string key="part">
+            <string key="label">part</string>
+            <string key="value">
                 <xsl:apply-templates select="mods:part"/>
             </string>
         </map>
