@@ -76,4 +76,11 @@ RSpec.describe 'issues' do
     end
     expect(response.body).not_to be_empty()
   end
+
+  it 'returns status 400 if the supplied bmtnid does not represent a valid resource' do
+    response = springs.get do |request|
+      request.url 'issues/bmtnaZZZZ'
+    end
+    expect(response.status).to eq(400)
+  end
 end

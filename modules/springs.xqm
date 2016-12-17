@@ -85,42 +85,6 @@ function springs:redirect-to-spec() {
  : The HTTP response header is only basic in Springs 1.0.
  :)
 
-(:~
- : magazines/ as JSON
- :
- : Specification section 3.1.1.2
- :
- : Queries the database for magazines and generates
- : a magazine-struct for each. It uses eXist's built-in
- : JSON serializer to convert the magazine-struct XML
- : into JSON.
- : 
- : @return a result sequence (rest:response, magazines)
- :)
-declare
- %rest:GET
- %rest:path("/springs/magazines")
- %output:method("json")
- %rest:produces("application/json")
-function springs:magazines-as-json() 
-as item()+ 
-{
-    let $response :=
-      <magazines> {
-        for $mag in app:magazines()
-        return app:magazine-struct($mag, false())
-    } </magazines>
-    return 
-         (<rest:response>
-            <http:response>
-              <http:response status="{ if (empty($response)) then 204 else 200 }"/>
-              <http:header name="Content-Type" value="application/json"/>
-              <http:header name="Access-Control-Allow-Origin" value="*"/>
-            </http:response>
-          </rest:response>,
-         $response)
-};
-
 
 (:~
  : magazines/ as text/CSV
@@ -158,6 +122,43 @@ as item()+
              <http:header name="Access-Control-Allow-Origin" value="*"/>
            </http:response>
          </rest:response>,
+         $response)
+};
+
+
+(:~
+ : magazines/ as JSON
+ :
+ : Specification section 3.1.1.2
+ :
+ : Queries the database for magazines and generates
+ : a magazine-struct for each. It uses eXist's built-in
+ : JSON serializer to convert the magazine-struct XML
+ : into JSON.
+ : 
+ : @return a result sequence (rest:response, magazines)
+ :)
+declare
+ %rest:GET
+ %rest:path("/springs/magazines")
+ %output:method("json")
+ %rest:produces("application/json")
+function springs:magazines-as-json() 
+as item()+ 
+{
+    let $response :=
+      <magazines> {
+        for $mag in app:magazines()
+        return app:magazine-struct($mag, false())
+    } </magazines>
+    return 
+         (<rest:response>
+            <http:response>
+              <http:response status="{ if (empty($response)) then 204 else 200 }"/>
+              <http:header name="Content-Type" value="application/json"/>
+              <http:header name="Access-Control-Allow-Origin" value="*"/>
+            </http:response>
+          </rest:response>,
          $response)
 };
 

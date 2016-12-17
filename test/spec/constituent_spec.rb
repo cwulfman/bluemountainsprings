@@ -15,6 +15,13 @@ RSpec.describe 'constituents' do
     expect(json['constituents']['constituent'].count).to eq(57)
   end
 
+  it "Returns status 400 if the requested resource does not exist" do
+    response = springs.get do |request|
+      request.url 'constituents/bmtnZZZ'
+    end
+    expect(response.status).to eq(400)
+  end
+
   it "Returns magazines constituents as uris" do
     response = springs.get do |request|
       request.url 'constituents/bmtnaap'
@@ -39,5 +46,19 @@ RSpec.describe 'constituents' do
     end
     xml = Nokogiri::XML(response.body)
     expect(xml.collect_namespaces['xmlns']).to eq("http://www.tei-c.org/ns/1.0")
+  end
+
+  it 'Returns status 400 if the supplied bmtnid does not correspond to a valid resource' do
+    response = springs.get do |request|
+      request.url 'constituent/bmtnaapzzz/c001'
+    end
+    expect(response.status).to eq(400)
+  end
+
+  it 'Returns status 202 if the supplied constituent does not correspond to a valid resource' do
+    response = springs.get do |request|
+      request.url 'constituent/bmtnaap_1921-11_01/cZZZ'
+    end
+    expect(response.status).to eq(400)
   end
 end
