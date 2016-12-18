@@ -17,8 +17,7 @@ _________________
 3 Springs APIs, by Resource
 .. 3.1 Magazines
 ..... 3.1.1 springs/magazines
-........ 3.1.1.1 text/csv
-........ 3.1.1.2 application/json
+........ 3.1.1.1 application/json
 ..... 3.1.2 springs/magazines/{bmtnid}
 ........ 3.1.2.1 application/json
 .. 3.2 Issues
@@ -105,31 +104,10 @@ _________________
   representation of all the magazines in Blue Mountain.
 
   Available Content Types:
-  - text/csv
   - application/json
 
 
-3.1.1.1 text/csv
-
-  A CSV stream representing the magazines in Blue Mountain. The CSV
-  fields are the following:
-
-   Field            Type                                           
-  -----------------------------------------------------------------
-   bmtnid           string                                         
-   primaryTitle     string                                         
-   primaryLanguage  a delimited string of ISO 632-2 language codes 
-   startDate        w3cdtf-formatted string                        
-   endDate          w3cdtf-formatted string                        
-   URI              URI to magazine /bmtnid/                       
-
-  Example:
-  ,----
-  | curl -H'Accept: text/csv' http://bluemountain.princeton.edu/exist/restxq/springs/magazines
-  `----
-
-
-3.1.1.2 application/json
+3.1.1.1 application/json
 
   A list of JSON objects representing the list of magazines in Blue
   Mountain. Each object has the following properties:
