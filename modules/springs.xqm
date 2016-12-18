@@ -43,7 +43,6 @@ declare namespace tei="http://www.tei-c.org/ns/1.0";
  : document detailing the API.
  :
  :)
- 
 declare
  %rest:GET
  %output:method("html5")
@@ -51,7 +50,8 @@ declare
 function springs:redirect-to-spec() {
     (
     <rest:response>
-        <http:response status="200"/>
+        <http:response status="302" message="redirect"/>
+        <http:header name="location" value="https://github.com/Princeton-CDH/bluemountainsprings/blob/master/doc/api-doc.org"/>
     </rest:response>,
     <html>
         <head><title>Blue Mountain Springs</title></head>
@@ -63,6 +63,7 @@ function springs:redirect-to-spec() {
     </html>
     )
 };
+
 
 (:~
  : The magazines/ service.
@@ -84,6 +85,7 @@ function springs:redirect-to-spec() {
  :
  : The HTTP response header is only basic in Springs 1.0.
  :)
+
 
 (:~
  : magazines/ as JSON
@@ -118,46 +120,6 @@ as item()+
               <http:header name="Access-Control-Allow-Origin" value="*"/>
             </http:response>
           </rest:response>,
-         $response)
-};
-
-
-(:~
- : magazines/ as text/CSV
- :
- : Specification Section 3.1.1.1
- :
- : Queries the database for magazines and generates
- : a magazine-struct for each. It assembles a return
- : value by converting each magazine-struct into a
- : comma-separated string.
- :
- : @return a result sequence (<rest:response/>, text)
- :)
-declare
- %rest:GET
- %rest:path("/springs/magazines")
- %output:method("text")
- %rest:produces("text/csv")
-function springs:magazines-as-csv()
-as item()+
-{
-    let $response :=
-      for $mag in app:magazines()
-      let $struct := app:magazine-struct($mag, false())
-      return concat(string-join(($struct/bmtnid,
-                                 $struct/primaryTitle,
-                                 $struct/primaryLanguage,
-                                 $struct/startDate,
-                                 $struct/endDate,
-                                 $struct/uri), ','), $app:lf)
-    return
-        (<rest:response>
-           <http:response status="{ if (empty($response)) then 204 else 200 }">
-             <http:header name="Content-Type" value="text/csv"/>
-             <http:header name="Access-Control-Allow-Origin" value="*"/>
-           </http:response>
-         </rest:response>,
          $response)
 };
 
@@ -550,7 +512,7 @@ declare
 function springs:constituent-plaintext($issueid as xs:string, $constid as xs:string)
 as item()+
 {
-  if (app:bmtnidp($issueid)) then
+  if (app:bmtnidp($issueid) and app:constituent($issueid, $constid)) then
     let $constituent := app:constituent($issueid, $constid)
     let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
     let $responseBody := transform:transform($constituent, $xsl, ())
@@ -604,6 +566,7 @@ as item()+
          <http:response status="400"/>
         </rest:response>
 };
+
 
 
 
@@ -841,22 +804,27 @@ as element()*
       </rest:response>,
       $responseBody)     
 };
+
+
 declare
- %rest:GET
- %output:method("html5")
- %rest:path("/springs")
-function springs:redirect-to-spec() {
+    %rest:GET
+    %rest:HEAD
+    %rest:POST
+    %rest:PUT
+    %rest:DELETE
+    %output:method("html5")
+ %rest:path("/springs/{$arg}")
+function springs:not-found($arg as xs:string?) {
     (
     <rest:response>
-        <http:response status="200"/>
-    </rest:response>,
+        <http:response status="404"/>
+    </rest:response>
+    ,
     <html>
-        <head><title>Blue Mountain Springs</title></head>
-    <body>
-        <h1>Blue Mountain Springs API</h1>
-        <p>See <a href="https://github.com/Princeton-CDH/bluemountainsprings/blob/master/doc/api-doc.org">Specification</a>
-        for more information.</p>
-    </body>
+        <head><title>Service not supported!</title></head>
+        <body>
+            <p>Sorry, {$arg} is not supported by Blue Mountain Springs</p>
+        </body>
     </html>
     )
 };
