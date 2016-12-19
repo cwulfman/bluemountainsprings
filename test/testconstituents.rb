@@ -79,11 +79,27 @@ magazines.each do |m|
           contributions = issue['contributions'][contentType]['contribution']
           log.info "examining #{contentType} contributions"
           contributions.each do |c|
+            uri = c['uri']
+            spring = Faraday.new(url: uri)
+            response = spring.get do |request|
+              request.headers['Accept'] = 'application/tei+xml'
+            end
+            unless response.status == 200
+              log.warn "no TEI: #{uri}"
+            end
+            response = spring.get do |request|
+              request.headers['Accept'] = 'text/plain'
+            end
+            unless response.status == 200
+              log.warn "no plain text: #{uri}"
+            end
+            
+
           end
         else
 
           contribution = issue['contributions'][contentType]['contribution']
-
+          log.debug contribution['uri']
         end
       else
         log.info "issue contains no #{contentType}"
