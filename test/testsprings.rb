@@ -27,18 +27,6 @@ JSON.parse(response.body)['magazine'].each do |m|
 end
 
 
-
-log.info '++ magazines/ accepting text/csv'
-response = springs.get do |request|
-  request.url 'magazines'
-  request.headers['Accept'] = 'text/csv'
-end
-log.info 'Got response'
-
-CSV.parse(response.body) { |row| log.debug row }
-
-
-
 log.info '++ /magazines/bmtnid as JSON'
 response = springs.get do |request|
   request.url 'magazines'
@@ -198,73 +186,73 @@ end
 
 
 # exercise constituents
-puts '+----- /constituents -----+'
+log.info '+----- /constituents -----+'
 spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/issues/bmtnaai_1905-08_01")
 
 response = spring.get do |request|
   request.headers['Accept'] = 'application/json'
 end
 
-puts '++----- TextContent -----++'
-puts JSON.parse(response.body)['contributions']['TextContent']
-puts '++----- Illustration -----++'
-puts JSON.parse(response.body)['contributions']['Illustration']
-puts '++----- SponsoredAdvertisement -----++'
-puts JSON.parse(response.body)['contributions']['SponsoredAdvertisement']
+log.info '++----- TextContent -----++'
+log.info JSON.parse(response.body)['contributions']['TextContent']
+log.info '++----- Illustration -----++'
+log.info JSON.parse(response.body)['contributions']['Illustration']
+log.info '++----- SponsoredAdvertisement -----++'
+log.info JSON.parse(response.body)['contributions']['SponsoredAdvertisement']
 
-puts '++----- TextContent itemized -----++'
-puts '+++----- as plain text -----+++'
+log.info '++----- TextContent itemized -----++'
+log.info '+++----- as plain text -----+++'
 contents = JSON.parse(response.body)['contributions']['TextContent']
 contents['contribution'].each do |c|
   spring = Faraday.new(url: c['uri'])
   response = spring.get do |request|
     request.headers['Accept'] = 'text/plain'
   end
-  puts response.body
+  log.debug response.body
 end
 
-puts '+++----- as TEI -----+++'
+log.info '+++----- as TEI -----+++'
 contents['contribution'].each do |c|
   spring = Faraday.new(url: c['uri'])
   response = spring.get do |request|
     request.headers['Accept'] = 'application/tei+xml'
   end
-  puts response.body
+  log.debug response.body
 end
 
-puts '+----- contributors/$bmtnid -----+'
+log.info '+----- contributors/$bmtnid -----+'
 spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/contributors/bmtnaap_1921-11_01")
 
-puts '++----- contributors/$bmtnid as CSV -----++'
+log.info '++----- contributors/$bmtnid as CSV -----++'
 response = spring.get do |request|
   request.headers['Accept'] = 'text/csv'
 end
 
-puts response.body
+log.debug response.body
 
-puts '++----- contributors/$bmtnid as JSON -----++'
+log.info '++----- contributors/$bmtnid as JSON -----++'
 response = spring.get do |request|
   request.headers['Accept'] = 'application/json'
 end
 
-puts response.body
+log.debug response.body
 
 
-puts '+----- contributions -----+'
+log.info '+----- contributions -----+'
 spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/contributions")
 
-puts '++----- contributions as JSON -----++'
+log.info '++----- contributions as JSON -----++'
 response = spring.get do |request|
   request.params['byline'] = 'Stevens'
   request.headers['Accept'] = 'application/json'
 end
 
-puts response.body
+log.debug response.body
 
-puts '++----- contributions as TEI -----++'
+log.info '++----- contributions as TEI -----++'
 response = spring.get do |request|
   request.params['byline'] = 'Stevens'
   request.headers['Accept'] = 'application/tei+xml'
 end
 
-puts response.body
+log.debug response.body
