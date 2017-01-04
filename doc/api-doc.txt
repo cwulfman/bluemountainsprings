@@ -46,7 +46,7 @@ _________________
 4 IIIF API
 .. 4.1 iiif/collection/top
 .. 4.2 iiif/collection/{magid}
-.. 4.3 iiif/manifest/{issueid}
+.. 4.3 iiif/{issueid}/manifest
 
 
 
@@ -497,12 +497,12 @@ _________________
   `----
 
 
-4.3 iiif/manifest/{issueid}
+4.3 iiif/{issueid}/manifest
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   A IIIF manifest object representing a particular issue.
 
   Example:
   ,----
-  | curl http://bluemountain.princeton.edu/exist/restxq/iiif/manifest/bmtnaap_1921-11_01
+  | curl http://bluemountain.princeton.edu/exist/restxq/iiif/bmtnaap_1921-11_01/manifest
   `----
