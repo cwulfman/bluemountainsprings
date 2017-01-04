@@ -8,7 +8,7 @@ require 'logger'
 
 log = Logger.new(STDOUT)
 
-springs_base = "http://localhost:8080/exist/restxq/springs/"
+springs_base = "http://bluemountain.princeton.edu/exist/restxq/springs/"
 springs = Faraday.new(url: springs_base)
 
 request = "magazines"

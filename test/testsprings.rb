@@ -4,7 +4,7 @@ require 'csv'
 require 'logger'
 
 
-springs_base = "http://localhost:8080/exist/restxq/springs/"
+springs_base = "http://bluemountain.princeton.edu/exist/restxq/springs/"
 
 log = Logger.new(STDOUT)
 springs = Faraday.new(url: springs_base)
@@ -182,77 +182,3 @@ magazines.each do |magazine|
     log.info "singleton"
   end
 end
-
-
-
-# exercise constituents
-log.info '+----- /constituents -----+'
-spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/issues/bmtnaai_1905-08_01")
-
-response = spring.get do |request|
-  request.headers['Accept'] = 'application/json'
-end
-
-log.info '++----- TextContent -----++'
-log.info JSON.parse(response.body)['contributions']['TextContent']
-log.info '++----- Illustration -----++'
-log.info JSON.parse(response.body)['contributions']['Illustration']
-log.info '++----- SponsoredAdvertisement -----++'
-log.info JSON.parse(response.body)['contributions']['SponsoredAdvertisement']
-
-log.info '++----- TextContent itemized -----++'
-log.info '+++----- as plain text -----+++'
-contents = JSON.parse(response.body)['contributions']['TextContent']
-contents['contribution'].each do |c|
-  spring = Faraday.new(url: c['uri'])
-  response = spring.get do |request|
-    request.headers['Accept'] = 'text/plain'
-  end
-  log.debug response.body
-end
-
-log.info '+++----- as TEI -----+++'
-contents['contribution'].each do |c|
-  spring = Faraday.new(url: c['uri'])
-  response = spring.get do |request|
-    request.headers['Accept'] = 'application/tei+xml'
-  end
-  log.debug response.body
-end
-
-log.info '+----- contributors/$bmtnid -----+'
-spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/contributors/bmtnaap_1921-11_01")
-
-log.info '++----- contributors/$bmtnid as CSV -----++'
-response = spring.get do |request|
-  request.headers['Accept'] = 'text/csv'
-end
-
-log.debug response.body
-
-log.info '++----- contributors/$bmtnid as JSON -----++'
-response = spring.get do |request|
-  request.headers['Accept'] = 'application/json'
-end
-
-log.debug response.body
-
-
-log.info '+----- contributions -----+'
-spring = Faraday.new(url: "http://localhost:8080/exist/restxq/springs/contributions")
-
-log.info '++----- contributions as JSON -----++'
-response = spring.get do |request|
-  request.params['byline'] = 'Stevens'
-  request.headers['Accept'] = 'application/json'
-end
-
-log.debug response.body
-
-log.info '++----- contributions as TEI -----++'
-response = spring.get do |request|
-  request.params['byline'] = 'Stevens'
-  request.headers['Accept'] = 'application/tei+xml'
-end
-
-log.debug response.body
