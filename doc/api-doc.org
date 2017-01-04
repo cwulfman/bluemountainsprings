@@ -417,10 +417,10 @@
    curl http://bluemountain.princeton.edu/exist/restxq/iiif/collection/bmtnaap
    #+END_SRC
 
-** iiif/manifest/{issueid}
+** iiif/{issueid}/manifest
    A IIIF manifest object representing a particular issue.
 
    Example:
    #+BEGIN_SRC sh
-   curl http://bluemountain.princeton.edu/exist/restxq/iiif/manifest/bmtnaap_1921-11_01
+   curl http://bluemountain.princeton.edu/exist/restxq/iiif/bmtnaap_1921-11_01/manifest
    #+END_SRC
