@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:bmtn-mods="http://bluemountain.princeton.edu/mods" version="2.0" exclude-result-prefixes="xs xd mods">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl" xmlns:bmtn-mods="http://bluemountain.princeton.edu/mods" version="2.0" exclude-result-prefixes="xs xd mods">
     <xd:doc scope="stylesheet">
         <xd:desc>
             <xd:p>
@@ -87,7 +87,7 @@
         </xsl:if>
         <xsl:value-of select="mods:title/text()"/>
         <xsl:if test="mods:subTitle">
-            <xsl:value-of select="concat(': ', mods:subTitle/text())"/>
+            <xsl:value-of select="concat(': ', mods:subTitle[1]/text())"/>
         </xsl:if>
     </xsl:template>
     <xsl:template match="mods:titleInfo">

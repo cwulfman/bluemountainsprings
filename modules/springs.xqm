@@ -103,7 +103,7 @@ declare
  %rest:GET
  %rest:path("/springs/magazines")
  %output:method("json")
- %rest:produces("application/json")
+ 
 function springs:magazines-as-json() 
 as item()+ 
 {
@@ -122,7 +122,6 @@ as item()+
           </rest:response>,
          $response)
 };
-
 
 
 
