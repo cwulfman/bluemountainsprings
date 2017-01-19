@@ -9,7 +9,7 @@ REFERENCES: http://wiki.collex.org/index.php/Submitting_RDF
 because the purpose is to create a conformant Collex document, not to
 account for all elements in the bmtn MODS record. -->
 <xsl:stylesheet xmlns:collex="http://www.collex.org/schema#" xmlns:mods="http://www.loc.gov/mods/v3" xmlns:role="http://www.loc.gov/loc.terms/relators/" xmlns:mets="http://www.loc.gov/METS/" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:bmtn="http://bluemountain.princeton.edu" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0" exclude-result-prefixes="xs mods">
-    <xsl:output indent="yes"/><!-- GLOBAL DECLARATIONS -->
+    <xsl:output method="xml" encoding="UTF-8" indent="yes"/><!-- GLOBAL DECLARATIONS -->
     <xsl:variable name="springs-server" as="xs:string">http://bluemountain.princeton.edu/exist/restxq/springs</xsl:variable><!-- Collex REQUIRES "a shorthand reference to the contributing project or journal."  -->
     <xsl:variable name="bmtn-server" as="xs:anyURI">http://bluemountain.princeton.edu/exist/apps/bluemountain</xsl:variable>
     <xsl:variable name="project-id" as="xs:string">bmtn</xsl:variable><!-- Collex REQUIRES one or more federation ids. An authorized string for ModNets would be nice
@@ -21,9 +21,11 @@ account for all elements in the bmtn MODS record. -->
             <discipline>Literature</discipline>
         </disciplines>
     </xsl:variable>
+    <xsl:variable name="newline" select="'&#xD;&#xA;'"/>
     <xsl:variable name="objid" select="/tei:TEI/tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type='bmtnid']" as="xs:string"/>
     <xsl:variable name="magid" select="/tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct/tei:relatedItem[@type='host']/@target"/>
-    <xsl:variable name="pubDate" select="/tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct/tei:monogr/tei:imprint/tei:date/@when"/><!--  TEMPLATES -->
+    <xsl:variable name="pubDate" select="/tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct/tei:monogr/tei:imprint/tei:date/@when"/>
+    <xsl:key name="divKey" match="tei:div" use="@corresp"/><!--  TEMPLATES -->
     <xsl:template match="/"><!-- The top-level RDF element is REQUIRED. -->
         <rdf:RDF>
             <xsl:apply-templates/>
@@ -107,7 +109,9 @@ account for all elements in the bmtn MODS record. -->
             </dc:date>
             <rdfs:seeAlso rdf:resource="{$bmtn-server}/issue.html?issueid={$objid}"/>
             <collex:fulltext>true</collex:fulltext>
-            <collex:text rdf:resource="{$springs-server}/constituent/{$objid}/{@xml:id}"/>
+            <collex:text>
+                <xsl:apply-templates select="key('divKey', @xml:id)"/>
+            </collex:text>
         </bmtn:Description>
     </xsl:template>
     <xsl:template match="tei:title">
@@ -166,6 +170,9 @@ account for all elements in the bmtn MODS record. -->
                 </xsl:otherwise>
             </xsl:choose>
         </collex:genre>
+    </xsl:template>
+    <xsl:template match="tei:lb">
+        <xsl:value-of select="$newline"/>
     </xsl:template>
     <xsl:template match="mets:mets[@TYPE='Magazine']"><!-- An element with an rdf:about element is REQUIRED.  
          The spec says it should be an arbitrary element in the

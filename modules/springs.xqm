@@ -529,6 +529,30 @@ as item()+
         </rest:response> 
 };
 
+declare
+  %rest:GET
+  %rest:path("/springs/text/constituent/{$issueid}/{$constid}")
+function springs:constituent-plaintext3($issueid as xs:string, $constid as xs:string)
+as item()+
+{
+  if (app:bmtnidp($issueid) and app:constituent($issueid, $constid)) then
+    let $constituent := app:constituent($issueid, $constid)
+    let $xsl := doc($config:app-root || "/resources/xsl/tei2txt.xsl")
+    let $responseBody := transform:transform($constituent, $xsl, ())
+    return 
+    (<rest:response>
+       <http:response status="{ if (empty($responseBody)) then 204 else 200 }">
+          <http:header name="Content-Type" value="text/plain"/>
+          <http:header name="Access-Control-Allow-Origin" value="*"/>
+       </http:response>
+      </rest:response>,
+      $responseBody)
+   else
+        <rest:response>
+         <http:response status="400"/>
+        </rest:response> 
+};
+
 
 (:~
  : constituent/$issueid/$constid as TEI
