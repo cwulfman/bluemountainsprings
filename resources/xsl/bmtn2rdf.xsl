@@ -64,7 +64,7 @@ account for all elements in the bmtn MODS record. -->
             <dc:date>
                 <xsl:value-of select="$pubDate"/>
             </dc:date>
-            <rdfs:seeAlso rdf:resource="{$bmtn-server}/issue.html?issueid={$objid}"/>
+            <rdfs:seeAlso rdf:resource="{$bmtn-server}/issue.html?issueURN={$objid}"/>
             <collex:text rdf:resource="{$springs-server}/text/{$objid}"/><!-- Need uri to the tei -->
             <xsl:for-each select="tei:biblStruct/tei:relatedItem[@type='constituent']">
                 <dcterms:hasPart rdf:resource="{$springs-server}/constituent/{$objid}/{@xml:id}"/>
@@ -107,7 +107,7 @@ account for all elements in the bmtn MODS record. -->
             <dc:date>
                 <xsl:value-of select="$pubDate"/>
             </dc:date>
-            <rdfs:seeAlso rdf:resource="{$bmtn-server}/issue.html?issueid={$objid}"/>
+            <rdfs:seeAlso rdf:resource="{$bmtn-server}/issue.html?issueURN={$objid}"/>
             <collex:fulltext>true</collex:fulltext>
             <collex:text>
                 <xsl:apply-templates select="key('divKey', @xml:id)"/>
