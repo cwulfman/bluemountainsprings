@@ -63,7 +63,6 @@ REFERENCES: http://wiki.collex.org/index.php/Submitting_RDF
                 <xsl:value-of select="$pubDate"/>
             </dc:date>
             <rdfs:seeAlso rdf:resource="{$bmtn-server}/issue.html?issueURN={$objid}"/>
-            <collex:text rdf:resource="{$springs-server}/text/{$objid}"/><!-- Need uri to the tei -->
             <xsl:for-each select="tei:biblStruct/tei:relatedItem[@type='constituent']">
                 <dcterms:hasPart rdf:resource="{$springs-server}/constituent/{$objid}/{@xml:id}"/>
             </xsl:for-each>
