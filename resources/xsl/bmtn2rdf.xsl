@@ -20,8 +20,8 @@ REFERENCES: http://wiki.collex.org/index.php/Submitting_RDF
         </disciplines>
     </xsl:variable>
     <xsl:variable name="newline" select="'&#xD;&#xA;'"/>
-    <xsl:variable name="objid" select="/tei:TEI/tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type='bmtnid']" as="xs:string"/>
-    <xsl:variable name="magid" select="/tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct/tei:relatedItem[@type='host']/@target"/>
+    <xsl:variable name="objid" select="/tei:TEI/tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type = 'bmtnid']" as="xs:string"/>
+    <xsl:variable name="magid" select="/tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct/tei:relatedItem[@type = 'host']/@target"/>
     <xsl:variable name="pubDate" select="/tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct/tei:monogr/tei:imprint/tei:date/@when"/>
     <xsl:key name="divKey" match="tei:div" use="@corresp"/><!--  TEMPLATES -->
     <xsl:template match="/"><!-- The top-level RDF element is REQUIRED. -->
@@ -41,13 +41,20 @@ REFERENCES: http://wiki.collex.org/index.php/Submitting_RDF
                 <xsl:value-of select="string-join(($project-id, $magid), '_')"/>
             </collex:archive>
             <dc:title>
-                <xsl:apply-templates select="tei:biblStruct/tei:monogr/tei:title"/>
+                <xsl:choose>
+                    <xsl:when test="tei:biblStruct/tei:monogr/tei:title">
+                        <xsl:apply-templates select="tei:biblStruct/tei:monogr/tei:title"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>Untitled</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
             </dc:title>
             <dc:type>Collection</dc:type>
             <dc:type>Periodical</dc:type>
             <xsl:choose>
-                <xsl:when test="tei:biblStruct/tei:monogr/tei:respStmt[tei:resp='edt']">
-                    <xsl:for-each select="tei:biblStruct/tei:monogr/tei:respStmt[tei:resp='edt']">
+                <xsl:when test="tei:biblStruct/tei:monogr/tei:respStmt[tei:resp = 'edt']">
+                    <xsl:for-each select="tei:biblStruct/tei:monogr/tei:respStmt[tei:resp = 'edt']">
                         <role:EDT>
                             <xsl:value-of select="tei:persName"/>
                         </role:EDT>
@@ -63,13 +70,13 @@ REFERENCES: http://wiki.collex.org/index.php/Submitting_RDF
                 <xsl:value-of select="$pubDate"/>
             </dc:date>
             <rdfs:seeAlso rdf:resource="{$bmtn-server}/issue.html?issueURN={$objid}"/>
-            <xsl:for-each select="tei:biblStruct/tei:relatedItem[@type='constituent']">
+            <xsl:for-each select="tei:biblStruct/tei:relatedItem[@type = 'constituent']">
                 <dcterms:hasPart rdf:resource="{$springs-server}/constituent/{$objid}/{@xml:id}"/>
             </xsl:for-each>
         </bmtn:Description>
-        <xsl:apply-templates select="tei:biblStruct/tei:relatedItem[@type='constituent']"/>
+        <xsl:apply-templates select="tei:biblStruct/tei:relatedItem[@type = 'constituent']"/>
     </xsl:template>
-    <xsl:template match="tei:relatedItem[@type='constituent']">
+    <xsl:template match="tei:relatedItem[@type = 'constituent']">
         <bmtn:Description rdf:about="{$springs-server}/constituent/{$objid}/{@xml:id}">
             <dcterms:isPartOf rdf:resource="{$springs-server}/issues/{$objid}"/>
             <collex:federation>
@@ -79,12 +86,19 @@ REFERENCES: http://wiki.collex.org/index.php/Submitting_RDF
                 <xsl:value-of select="string-join(($project-id, $magid), '_')"/>
             </collex:archive>
             <dc:title>
-                <xsl:apply-templates select="tei:biblStruct/tei:analytic/tei:title[@level='a']"/>
+                <xsl:choose>
+                    <xsl:when test="tei:biblStruct/tei:analytic/tei:title[@level = 'a']">
+                        <xsl:apply-templates select="tei:biblStruct/tei:analytic/tei:title[@level = 'a']"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>Untitled</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
             </dc:title>
             <dc:type>Periodical</dc:type>
             <xsl:choose>
-                <xsl:when test="tei:biblStruct/tei:analytic/tei:respStmt[tei:resp='cre']">
-                    <xsl:for-each select="tei:biblStruct/tei:analytic/tei:respStmt[tei:resp='cre']">
+                <xsl:when test="tei:biblStruct/tei:analytic/tei:respStmt[tei:resp = 'cre']">
+                    <xsl:for-each select="tei:biblStruct/tei:analytic/tei:respStmt[tei:resp = 'cre']">
                         <role:CRE>
                             <xsl:apply-templates select="current()/tei:persName"/>
                         </role:CRE>
@@ -111,9 +125,9 @@ REFERENCES: http://wiki.collex.org/index.php/Submitting_RDF
         </bmtn:Description>
     </xsl:template>
     <xsl:template match="tei:title">
-        <xsl:apply-templates select="tei:seg[@type='main']"/>
+        <xsl:apply-templates select="tei:seg[@type = 'main']"/>
     </xsl:template>
-    <xsl:template match="tei:classCode[@scheme='CCS']">
+    <xsl:template match="tei:classCode[@scheme = 'CCS']">
         <collex:genre>
             <xsl:choose>
                 <xsl:when test="./text() = 'Periodicals-Issue'">
@@ -145,7 +159,7 @@ REFERENCES: http://wiki.collex.org/index.php/Submitting_RDF
     </xsl:template>
     <xsl:function name="bmtn:object-URL">
         <xsl:param name="objid" as="xs:string"/>
-        <xsl:value-of select="concat('http://bluemountain.princeton.edu/issue.html?issueURN=',$objid)"/>
+        <xsl:value-of select="concat('http://bluemountain.princeton.edu/issue.html?issueURN=', $objid)"/>
     </xsl:function>
     <xsl:function name="bmtn:tei-URL">
         <xsl:param name="modsid" as="xs:string"/>
@@ -153,7 +167,7 @@ REFERENCES: http://wiki.collex.org/index.php/Submitting_RDF
     </xsl:function>
     <xsl:function name="bmtn:archive-name">
         <xsl:param name="objid" as="xs:string"/>
-        <xsl:value-of select="concat($project-id,'_',tokenize($objid, ':')[last()])"/>
+        <xsl:value-of select="concat($project-id, '_', tokenize($objid, ':')[last()])"/>
     </xsl:function>
     <xsl:function name="bmtn:clean-id">
         <xsl:param name="objid" as="xs:string"/>
