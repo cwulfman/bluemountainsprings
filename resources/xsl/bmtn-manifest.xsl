@@ -18,6 +18,9 @@
     <xsl:key name="techMD" match="mets:techMD" use="@ID"/>
     <xsl:param name="baseURI">http://bluemountain.princeton.edu/iiif</xsl:param><!-- default value; real value is passed in -->
     <xsl:variable name="iiif-context">http://iiif.io/api/image/2/context.json</xsl:variable>
+    
+    <xsl:variable name="pdf-root">http://bluemountain.princeton.edu/pdfs</xsl:variable>
+    
     <xsl:variable name="bmtnid">
         <xsl:value-of select="substring-after(/mets:mets/mets:dmdSec/mets:mdWrap[@MDTYPE = 'MODS']/mets:xmlData/mods:mods/mods:identifier[@type = 'bmtn'],'urn:PUL:bluemountain:')"/>
     </xsl:variable>
@@ -30,6 +33,25 @@
         <xsl:variable name="path" select="substring-after($fileURI, 'file:///usr/share/BlueMountain/astore/periodicals/')"/>
         <xsl:value-of select="concat($protocol, $host, '/', $service, '/', $base, '/', $path)"/>
     </xsl:function>
+    
+    <xsl:function name="local:pdf-path">
+        <xsl:param name="mets"/>
+        <xsl:variable name="titleid">
+            <xsl:value-of select="substring-after($mets//mods:relatedItem[@type='host']/@xlink:href, 'urn:PUL:bluemountain:')"/>
+        </xsl:variable>
+        <xsl:variable name="bmtnid">
+            <xsl:value-of select="$mets//mods:identifier[@type='bmtn']"/>
+        </xsl:variable>
+        <xsl:variable name="issueid">
+            <xsl:value-of select="substring-after($bmtnid, 'urn:PUL:bluemountain:')"/>
+        </xsl:variable>
+        <xsl:variable name="datepath">
+            <xsl:value-of select="replace(substring-after($bmtnid, '_'),'-', '/')"/>
+        </xsl:variable>
+
+        <xsl:value-of select="concat($pdf-root, '/periodicals/', $titleid, '/issues/', $datepath,'/', $issueid, '.pdf')"/>
+    </xsl:function>
+    
     <xsl:template match="mods:mods" mode="metadata">
         <map>
             <string key="label">title</string>
@@ -110,7 +132,7 @@
     </xsl:template>
     <xsl:template name="description">
         <xsl:param name="metsrec" as="node()"/>
-        <string key="description">a description</string>
+        <string key="description">a magazine issue in the Blue Mountain collection</string>
     </xsl:template>
     <xsl:template name="license">
         <xsl:param name="metsrec" as="node()"/>
@@ -127,6 +149,16 @@
     <xsl:template name="seeAlso">
         <xsl:param name="metsrec" as="node()"/>
         <map key="seeAlso"/>
+    </xsl:template>
+    <xsl:template name="rendering">
+        <xsl:param name="metsrec" as="node()"/>
+        <map key="rendering">
+            <string key="@id">
+                <xsl:value-of select="local:pdf-path($metsrec)"/>
+            </string>
+            <string key="label">Download as PDF</string>
+            <string key="format">application/pdf</string>
+        </map>
     </xsl:template>
     <xsl:template name="within">
         <xsl:param name="metsrec" as="node()"/>
@@ -148,6 +180,13 @@
             </string>
             <string key="@type">sc:Sequence</string>
             <string key="label">Normal Page Order</string>
+            <map key="rendering">
+                <string key="@id">
+                    <xsl:value-of select="local:pdf-path($metsrec)"/>
+                </string>
+                <string key="label">Download as PDF</string>
+                <string key="format">application/pdf</string>
+            </map>
             <string key="viewingDirection">left-to-right</string>
             <string key="viewingHint">paged</string>
             <xsl:call-template name="canvases">
@@ -272,6 +311,9 @@
                 <xsl:with-param name="metsrec" select="current()"/>
             </xsl:call-template>
             <xsl:call-template name="seeAlso">
+                <xsl:with-param name="metsrec" select="current()"/>
+            </xsl:call-template>
+            <xsl:call-template name="rendering">
                 <xsl:with-param name="metsrec" select="current()"/>
             </xsl:call-template>
             <xsl:call-template name="within">
